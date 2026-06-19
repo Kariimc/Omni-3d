@@ -5,7 +5,7 @@ import { AnimationRetarget, RiggingSkinWeights } from "./loopB";
 import { EitlValidation } from "./loopC";
 
 export * from "./common";
-export { PipelineJob } from "./job";
+export { PipelineJob, RunnerState } from "./job";
 export { FrameSampler, VoxelDraft, Retopology } from "./loopA";
 export { RiggingSkinWeights, AnimationRetarget } from "./loopB";
 export { EitlValidation } from "./loopC";
@@ -22,6 +22,17 @@ export const OmniPayload = z.discriminatedUnion("$omni3d", [
   EitlValidation,
 ]);
 export type OmniPayload = z.infer<typeof OmniPayload>;
+
+/** Stage payloads only (the job envelope excluded) — what a runner emits per step. */
+export const StagePayload = z.discriminatedUnion("$omni3d", [
+  FrameSampler,
+  VoxelDraft,
+  Retopology,
+  RiggingSkinWeights,
+  AnimationRetarget,
+  EitlValidation,
+]);
+export type StagePayload = z.infer<typeof StagePayload>;
 
 /** Registry: `$omni3d` tag -> schema. Used by the validator and the JSON Schema exporter. */
 export const SCHEMAS = {

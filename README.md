@@ -27,7 +27,8 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `schemas/json/*.schema.json` | Exported JSON Schema contracts for the UE5/Unity bridges |
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
-| `supabase/migrations/*` | `jobs` table DDL |
+| `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
+| `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
 ## API
 | Method | Route | Purpose |
@@ -37,14 +38,24 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `POST` | `/pipeline` | validate request → build job envelope → persist (201) |
 | `GET` | `/jobs` | recent jobs (`?limit=`) |
 | `GET` | `/jobs/:id` | fetch a job envelope (404 if absent) |
-| `POST` | `/jobs/:id/stages` | validate any Loop A/B/C payload via the discriminated union |
+| `POST` | `/jobs/:id/advance` | run the next stage; `?defect=` injects an EITL failure to test repair |
+| `GET` | `/jobs/:id/stages` | list the stage payloads emitted by the runner |
+| `POST` | `/jobs/:id/stages` | validate an externally produced stage payload (discriminated union) |
 
 ```
 npm start              # boot the API (PORT=8787, in-memory store by default)
 npm run smoke          # inject-based route tests, no network/credentials needed
 ```
 Set `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` (see `.env.example`) to persist jobs in Supabase;
-apply `supabase/migrations/0001_init.sql` first.
+apply the migrations in `supabase/migrations/` first.
+
+## Loop runner
+`POST /jobs/:id/advance` drives the job one stage at a time along the canonical chain
+A1→A2→A3→B1→B2→C, emitting a schema-valid payload per step and updating `loops[*]`
+status/progress. Loop C runs the EITL gate `E = w1·manifold + w2·intersections + w3·vertex_tear`;
+if `E > T` it masks the worst failure site and re-runs Phase 2/3 locally (the micro-repair
+back-edge), recording each pass in `microRepair`. Add `?defect=vertex_tear|intersections|manifold`
+to force a failure and watch the repair loop recover.
 
 ## Payload data flow
 ```

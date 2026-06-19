@@ -84,6 +84,14 @@ export const Artifacts = z
   })
   .strict();
 
+export const RunnerState = z
+  .object({
+    cursor: z.number().int(),
+    emitted: z.array(z.string()),
+    repairs: z.number().int(),
+  })
+  .strict();
+
 /** Top-level job envelope binding inputs, targets, feature flags, and per-loop state. */
 export const PipelineJob = z
   .object({
@@ -104,7 +112,9 @@ export const PipelineJob = z
     features: Features,
     loops: Loops,
     artifacts: Artifacts,
+    runner: RunnerState.optional(),
   })
   .strict();
 
 export type PipelineJob = z.infer<typeof PipelineJob>;
+export type RunnerState = z.infer<typeof RunnerState>;

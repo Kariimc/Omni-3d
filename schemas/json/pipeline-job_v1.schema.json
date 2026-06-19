@@ -121,8 +121,7 @@
           "required": [
             "text",
             "images",
-            "video",
-            "motionVideo"
+            "video"
           ],
           "additionalProperties": false
         },
@@ -359,6 +358,29 @@
             "riggedMesh",
             "animation",
             "engineBundle"
+          ],
+          "additionalProperties": false
+        },
+        "runner": {
+          "type": "object",
+          "properties": {
+            "cursor": {
+              "type": "integer"
+            },
+            "emitted": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "repairs": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "cursor",
+            "emitted",
+            "repairs"
           ],
           "additionalProperties": false
         }

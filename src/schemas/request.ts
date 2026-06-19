@@ -79,6 +79,7 @@ export function buildJobEnvelope(
       animation: `${base}/anim.fbx`,
       engineBundle: `${base}/engine_bundle.uasset`,
     },
+    runner: { cursor: -1, emitted: [], repairs: 0 },
   };
   // Re-parse so the response is guaranteed to satisfy the canonical contract.
   return PipelineJob.parse(envelope);

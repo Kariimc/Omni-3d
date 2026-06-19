@@ -1,10 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { PipelineJob } from "../schemas/job";
+import { PipelineJob, StagePayload } from "../schemas";
 import type { JobStore } from "./types";
 
 const TABLE = "jobs";
+const STAGE_TABLE = "job_stages";
 
-/** Supabase-backed store. Persists the full envelope in a jsonb `payload` column.
+/** Supabase-backed store. Jobs and emitted stage payloads persist as jsonb.
  *  Requires the service-role key (server-side only). See supabase/migrations. */
 export class SupabaseJobStore implements JobStore {
   readonly kind = "supabase";
@@ -43,5 +44,24 @@ export class SupabaseJobStore implements JobStore {
       .limit(limit);
     if (error) throw new Error(`supabase list failed: ${error.message}`);
     return (data ?? []).map((row) => PipelineJob.parse(row.payload));
+  }
+
+  async putStage(jobId: string, stage: StagePayload): Promise<void> {
+    const { error } = await this.db.from(STAGE_TABLE).insert({
+      job_id: jobId,
+      stage: stage.$omni3d,
+      payload: stage,
+    });
+    if (error) throw new Error(`supabase putStage failed: ${error.message}`);
+  }
+
+  async getStages(jobId: string): Promise<StagePayload[]> {
+    const { data, error } = await this.db
+      .from(STAGE_TABLE)
+      .select("payload")
+      .eq("job_id", jobId)
+      .order("id", { ascending: true });
+    if (error) throw new Error(`supabase getStages failed: ${error.message}`);
+    return (data ?? []).map((row) => StagePayload.parse(row.payload));
   }
 }
