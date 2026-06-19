@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
-| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL, bone-heat skin weights |
+| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL, bone-heat skin weights, foot-lock retarget |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
@@ -90,6 +90,13 @@ system `(L + H)·w = H·p` is solved over the mesh graph Laplacian by Gauss-Seid
 partition of unity by construction (`L·1 = 0`); the heat term is edge-length-normalized for scale
 invariance. `npm run smoke:skin` checks partition of unity, per-bone locality, a monotonic falloff
 along a tube, a genuinely blended bone junction, and the runner DI seam at B1.
+
+The fifth is `realRetarget` (Loop B2, `retarget.ts`) — **foot-lock IK + trajectory smoothing** on a
+source motion clip: detect each foot's stance phases (near the ground plane), soft-pin the planted
+foot toward its stance centroid to kill sliding, and smooth the root path — reporting the measured
+slide residual and jitter suppression. `npm run smoke:retarget` walks a clip with deliberate 6cm
+foot slide and jittery root, asserts the slide drops to ~0.6cm and root acceleration is cut ~80%,
+verifies the baked output is actually pinned, and exercises the runner DI seam at B2.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
