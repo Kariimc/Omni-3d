@@ -49,6 +49,7 @@ async function main(): Promise<void> {
   const dashJs = await app.inject({ method: "GET", url: "/dashboard.js" });
   assert.equal(dashJs.statusCode, 200, "GET /dashboard.js -> 200");
   assert.ok(dashJs.body.includes("WebSocket"), "dashboard.js consumes /live");
+  assert.ok(dashJs.body.includes("from=") && dashJs.body.includes("lastSeq"), "dashboard.js auto-resumes");
   const dashCss = await app.inject({ method: "GET", url: "/dashboard.css" });
   assert.equal(dashCss.statusCode, 200, "GET /dashboard.css -> 200");
 

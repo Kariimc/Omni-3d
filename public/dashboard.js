@@ -5,7 +5,7 @@ const $ = (s, r = document) => r.querySelector(s);
 const el = {
   prompt: $("#prompt"), engine: $("#engine"), budget: $("#budget"), rig: $("#rig"), defect: $("#defect"),
   create: $("#create"), advance: $("#advance"), run: $("#run"),
-  dot: $("#dot"), jobid: $("#jobid"), log: $("#log"),
+  dot: $("#dot"), conn: $("#conn"), jobid: $("#jobid"), log: $("#log"),
   eitlBody: $('#eitl [data-role="body"]'), engineBody: $('#engine-panel [data-role="body"]'),
 };
 
@@ -24,11 +24,21 @@ const UNITY = [
   ["live_link", "open Live Link"],
 ];
 
+const MAX_RECONNECT = 8;
 let jobId = null;
 let ws = null;
 let done = false;
+let lastSeq = 0;
+let intentionalClose = false;
+let reconnectAttempts = 0;
+let reconnectTimer = null;
 
 const pct = (p) => Math.round((p || 0) * 100) + "%";
+
+function setConn(text, warn) {
+  el.conn.textContent = text;
+  el.conn.classList.toggle("warn", !!warn);
+}
 
 function logLine(kind, text) {
   const li = document.createElement("li");
@@ -81,9 +91,10 @@ function renderEngine(ev) {
 }
 
 function handle(ev) {
+  if (typeof ev.seq === "number" && ev.seq > lastSeq) lastSeq = ev.seq;
   switch (ev.type) {
     case "connected":
-      logLine("connected", ev.jobId);
+      logLine("connected", ev.jobId + (lastSeq > 0 ? " (resumed @" + lastSeq + ")" : ""));
       break;
     case "stage.completed":
       setLoop("A_structural", ev.loops.A_structural);
@@ -112,12 +123,47 @@ function handle(ev) {
   }
 }
 
-function connect() {
+function scheduleReconnect() {
+  if (reconnectAttempts >= MAX_RECONNECT) {
+    setConn("offline", true);
+    logLine("error", "gave up reconnecting after " + MAX_RECONNECT + " attempts");
+    return;
+  }
+  reconnectAttempts++;
+  const wait = Math.min(5000, 500 * 2 ** (reconnectAttempts - 1));
+  setConn("reconnecting… (" + reconnectAttempts + ")", true);
+  reconnectTimer = setTimeout(() => connect(true), wait);
+}
+
+function connect(resume) {
+  clearTimeout(reconnectTimer);
+  intentionalClose = false;
+  // Resume from the last seq we saw so the durable log replays only what we missed.
+  const from = resume && lastSeq > 0 ? "&from=" + lastSeq : "";
+  ws = new WebSocket("ws://" + location.host + "/live?jobId=" + encodeURIComponent(jobId) + from);
+  ws.onopen = () => {
+    el.dot.classList.add("on");
+    reconnectAttempts = 0;
+    setConn("live");
+  };
+  ws.onclose = () => {
+    el.dot.classList.remove("on");
+    if (intentionalClose || done) return;
+    scheduleReconnect();
+  };
+  ws.onmessage = (m) => {
+    try {
+      handle(JSON.parse(m.data));
+    } catch {
+      /* ignore malformed frame */
+    }
+  };
+}
+
+function closeWs() {
+  intentionalClose = true;
+  clearTimeout(reconnectTimer);
   if (ws) ws.close();
-  ws = new WebSocket("ws://" + location.host + "/live?jobId=" + encodeURIComponent(jobId));
-  ws.onopen = () => el.dot.classList.add("on");
-  ws.onclose = () => el.dot.classList.remove("on");
-  ws.onmessage = (m) => handle(JSON.parse(m.data));
 }
 
 async function api(path, opts) {
@@ -127,7 +173,11 @@ async function api(path, opts) {
 }
 
 async function createJob() {
+  closeWs();
   resetUI();
+  lastSeq = 0;
+  done = false;
+  reconnectAttempts = 0;
   const body = {
     text: el.prompt.value,
     video: { uri: "asset://uploads/clip.mp4", container: "mp4", durationSec: 12.4, fps: 30, resolution: [1920, 1080] },
@@ -139,11 +189,10 @@ async function createJob() {
     body: JSON.stringify(body),
   });
   jobId = job.jobId;
-  done = false;
   el.jobid.textContent = jobId;
   el.advance.disabled = false;
   el.run.disabled = false;
-  connect();
+  connect(false);
 }
 
 async function advance() {
@@ -165,4 +214,5 @@ async function runToEnd() {
 el.create.onclick = createJob;
 el.advance.onclick = advance;
 el.run.onclick = runToEnd;
+setConn("idle");
 resetUI();

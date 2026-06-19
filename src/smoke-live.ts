@@ -117,11 +117,47 @@ async function main(): Promise<void> {
   assert.ok(resumed.every((e) => (e.seq ?? 0) > midSeq), "resumed events are all after from");
   c3.close();
 
+  // --- drop mid-stream, then resume from lastSeq (no gap, no dup) — what the dashboard does ---
+  const j3 = (
+    await app.inject({ method: "POST", url: "/pipeline", headers: JSON_HEADERS, payload: JSON.stringify(createBody) })
+  ).json().jobId as string;
+  const pushA: AnyEvent[] = [];
+  const cA = new LiveSyncClient(base, j3, {
+    onStage: (e) => pushA.push(e),
+    onEitl: (e) => pushA.push(e),
+  });
+  await cA.connect();
+  await app.inject({ method: "POST", url: `/jobs/${j3}/advance` }); // A1
+  await app.inject({ method: "POST", url: `/jobs/${j3}/advance` }); // A2
+  await delay(40);
+  const seqAtDrop = cA.lastSeq;
+  cA.close(); // simulate a dropped connection
+  await app.inject({ method: "POST", url: `/jobs/${j3}/advance` }); // A3 emitted while offline
+  await delay(40);
+
+  const afterDrop: AnyEvent[] = [];
+  const cB = new LiveSyncClient(
+    base,
+    j3,
+    { onStage: (e) => afterDrop.push(e), onEitl: (e) => afterDrop.push(e) },
+    { from: seqAtDrop },
+  );
+  await cB.connect();
+  await delay(40);
+  assert.ok(seqAtDrop > 0, "saw events before the drop");
+  assert.ok(afterDrop.length >= 1, "resume delivered events missed while offline");
+  assert.ok(afterDrop.every((e) => (e.seq ?? 0) > seqAtDrop), "resume sent only events after the drop point");
+  assert.ok(
+    afterDrop.some((e) => e.type === "stage.completed" && e.stage === "loopA.retopology.io/v1"),
+    "the A3 event emitted during the drop was replayed on resume",
+  );
+  cB.close();
+
   await app.close();
   console.log(
     `LIVE SMOKE PASS — stream(6 stages, repairs=${seen.eitl?.repairs}), engine[${bridge.actions
       .map((a) => a.kind)
-      .join(", ")}], persisted=${log.length}, replay=${replayed.length}, resume=${resumed.length}`,
+      .join(", ")}], persisted=${log.length}, replay=${replayed.length}, resume=${resumed.length}, drop-resume=${afterDrop.length}`,
   );
 }
 

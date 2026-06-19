@@ -44,6 +44,8 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .status { margin-left: auto; display: flex; gap: 8px; align-items: center; color: var(--muted); }
 .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bad); }
 .dot.on { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+#conn { color: var(--muted); }
+#conn.warn { color: var(--warn); }
 main { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; padding: 16px; }
 .phases { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .phase { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
