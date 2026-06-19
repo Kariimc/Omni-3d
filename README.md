@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
-| `src/live/*` | Live-Sync protocol, pub/sub bus, engine-side client + UE5/Unity bridge |
+| `src/live/*` | Live-Sync protocol, pub/sub bus (memory + Postgres), client + UE5/Unity bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
@@ -87,9 +87,15 @@ npm run live:client -- <jobId> --url=ws://127.0.0.1:8787 [--from=<seq>]
 Every emitted event is persisted to a durable log with a monotonic `seq` (in-memory by default,
 `job_events` table under Supabase). On connect, `/live` **replays** the log from `?from=<seq>`
 (default 0 = full history) and then streams live — subscribing *before* it reads the log so no
-event is missed in the gap. A dropped client resumes with `{ from: client.lastSeq }`; late joiners
-get the whole history. The `EventBus` (`src/live/bus.ts`) is the broadcast seam — swap
-`InMemoryEventBus` for a Redis/Postgres-NOTIFY adapter to fan out across multiple API instances.
+event is missed in the gap. A dropped client resumes with `{ from: client.lastSeq }`; late joiners get the whole history.
+
+### Scaling across instances
+The `EventBus` (`src/live/bus.ts`) is the broadcast seam. `InMemoryEventBus` is the default
+(single process); `PostgresNotifyEventBus` (`src/live/pg-bus.ts`) fans events out across many API
+instances via Postgres `LISTEN/NOTIFY` — every instance LISTENs on one channel, `publish` issues
+`pg_notify`, and the durable log still backs replay. Select it with `EVENT_BUS=pg` + `DATABASE_URL`.
+`npm run smoke:bus` verifies cross-instance fan-out against a fake wire offline, and runs a real
+LISTEN/NOTIFY test when `DATABASE_URL` is set.
 
 ## Payload data flow
 ```
