@@ -23,13 +23,10 @@
   },
   "targets": {
     "engine": "ue5",
-    "engineEnum": ["ue5", "unity", "both"],
     "unitScale": "cm",
     "polyBudget": "hero",
-    "polyBudgetEnum": ["mobile_xr", "hero", "nanite"],
     "humanoid": true,
-    "rigStandard": "ue5_sk_mannequin",
-    "rigStandardEnum": ["ue5_sk_mannequin", "unity_humanoid_mecanim"]
+    "rigStandard": "ue5_sk_mannequin"
   },
   "features": {
     "voxelDraftTweaker": true,

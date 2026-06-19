@@ -1,0 +1,263 @@
+{
+  "$ref": "#/definitions/loopA.retopology.io/v1",
+  "definitions": {
+    "loopA.retopology.io/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "loopA.retopology.io/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "loop": {
+          "type": "string",
+          "const": "A_structural"
+        },
+        "input": {
+          "type": "object",
+          "properties": {
+            "highFiMesh": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "triangles": {
+              "type": "integer"
+            },
+            "extraction": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "highFiMesh",
+            "triangles",
+            "extraction"
+          ],
+          "additionalProperties": false
+        },
+        "polyBudget": {
+          "type": "object",
+          "properties": {
+            "preset": {
+              "type": "string",
+              "enum": [
+                "mobile_xr",
+                "hero",
+                "nanite"
+              ]
+            },
+            "targetQuads": {
+              "type": "integer"
+            },
+            "achievedQuads": {
+              "type": "integer"
+            },
+            "quadDominancePct": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "preset",
+            "targetQuads",
+            "achievedQuads",
+            "quadDominancePct"
+          ],
+          "additionalProperties": false
+        },
+        "curvatureField": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string"
+            },
+            "alignment": {
+              "type": "string"
+            },
+            "singularities": {
+              "type": "integer"
+            },
+            "smoothnessLambda": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "alignment",
+            "singularities",
+            "smoothnessLambda"
+          ],
+          "additionalProperties": false
+        },
+        "uvSeams": {
+          "type": "object",
+          "properties": {
+            "userPainted": {
+              "type": "boolean"
+            },
+            "immutableSeams": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "polyline": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "name",
+                  "polyline"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "islands": {
+              "type": "integer"
+            },
+            "stretchPct": {
+              "type": "number"
+            },
+            "packingEfficiencyPct": {
+              "type": "number"
+            },
+            "secondaryUV": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "userPainted",
+            "immutableSeams",
+            "islands",
+            "stretchPct",
+            "packingEfficiencyPct",
+            "secondaryUV"
+          ],
+          "additionalProperties": false
+        },
+        "pbr": {
+          "type": "object",
+          "properties": {
+            "inverseRender": {
+              "type": "string"
+            },
+            "delit": {
+              "type": "boolean"
+            },
+            "resolution": {
+              "type": "integer"
+            },
+            "emissiveTerms": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "maps": {
+              "type": "object",
+              "properties": {
+                "albedo": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "normal": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "roughness": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "metallic": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "emissive": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                }
+              },
+              "required": [
+                "albedo",
+                "normal",
+                "roughness",
+                "metallic",
+                "emissive"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "inverseRender",
+            "delit",
+            "resolution",
+            "emissiveTerms",
+            "maps"
+          ],
+          "additionalProperties": false
+        },
+        "watertight": {
+          "type": "object",
+          "properties": {
+            "manifold": {
+              "type": "boolean"
+            },
+            "holes": {
+              "type": "integer"
+            },
+            "nonManifoldEdges": {
+              "type": "integer"
+            },
+            "zeroThicknessSheets": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "manifold",
+            "holes",
+            "nonManifoldEdges",
+            "zeroThicknessSheets"
+          ],
+          "additionalProperties": false
+        },
+        "nextStage": {
+          "type": "string",
+          "const": "loopB.rigging"
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "loop",
+        "input",
+        "polyBudget",
+        "curvatureField",
+        "uvSeams",
+        "pbr",
+        "watertight",
+        "nextStage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

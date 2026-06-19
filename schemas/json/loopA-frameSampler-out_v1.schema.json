@@ -1,0 +1,220 @@
+{
+  "$ref": "#/definitions/loopA.frameSampler.out/v1",
+  "definitions": {
+    "loopA.frameSampler.out/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "loopA.frameSampler.out/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "loop": {
+          "type": "string",
+          "const": "A_structural"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "fps": {
+              "type": "number"
+            },
+            "frames": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "uri",
+            "fps",
+            "frames"
+          ],
+          "additionalProperties": false
+        },
+        "sfm": {
+          "type": "object",
+          "properties": {
+            "solver": {
+              "type": "string"
+            },
+            "intrinsics": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string"
+                },
+                "fx": {
+                  "type": "number"
+                },
+                "fy": {
+                  "type": "number"
+                },
+                "cx": {
+                  "type": "number"
+                },
+                "cy": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "model",
+                "fx",
+                "fy",
+                "cx",
+                "cy"
+              ],
+              "additionalProperties": false
+            },
+            "reprojectionErrorPx": {
+              "type": "number"
+            },
+            "registeredFrames": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "solver",
+            "intrinsics",
+            "reprojectionErrorPx",
+            "registeredFrames"
+          ],
+          "additionalProperties": false
+        },
+        "sharpnessThreshold": {
+          "type": "number"
+        },
+        "selectedFrames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idx": {
+                "type": "integer"
+              },
+              "tSec": {
+                "type": "number"
+              },
+              "sharpness": {
+                "type": "number"
+              },
+              "blurRejected": {
+                "type": "boolean"
+              },
+              "camera": {
+                "type": "object",
+                "properties": {
+                  "position": {
+                    "type": "array",
+                    "minItems": 3,
+                    "maxItems": 3,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "quat": {
+                    "type": "array",
+                    "minItems": 4,
+                    "maxItems": 4,
+                    "items": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "number"
+                      }
+                    ]
+                  },
+                  "fovDeg": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "position",
+                  "quat",
+                  "fovDeg"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "idx",
+              "tSec",
+              "sharpness",
+              "blurRejected",
+              "camera"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "rejectedFrames": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "idx": {
+                "type": "integer"
+              },
+              "tSec": {
+                "type": "number"
+              },
+              "sharpness": {
+                "type": "number"
+              },
+              "blurRejected": {
+                "type": "boolean"
+              },
+              "reason": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "idx",
+              "tSec",
+              "sharpness",
+              "blurRejected",
+              "reason"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "nextStage": {
+          "type": "string",
+          "const": "loopA.voxelDraft"
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "loop",
+        "source",
+        "sfm",
+        "sharpnessThreshold",
+        "selectedFrames",
+        "rejectedFrames",
+        "nextStage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

@@ -4,7 +4,6 @@
   "loop": "B_rigging",
   "input": { "retopoMesh": "asset://job_01J8Z9K3/mesh_retopo.glb", "vertices": 31840 },
   "rigStandard": "ue5_sk_mannequin",
-  "rigStandardEnum": ["ue5_sk_mannequin", "unity_humanoid_mecanim"],
   "jointPrediction": { "model": "volumetric_gnn", "voxelGrid": [64, 64, 64], "confidence": 0.93 },
   "skeleton": {
     "root": "root",

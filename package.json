@@ -1,0 +1,43 @@
+{
+  "name": "omni3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Video-native 3D production studio — closed-loop payload schemas + API (UE5 & Unity native).",
+  "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "smoke": "tsx src/smoke.ts",
+    "smoke:live": "tsx src/smoke-live.ts",
+    "smoke:bus": "tsx src/smoke-bus.ts",
+    "smoke:sampler": "tsx src/smoke-sampler.ts",
+    "smoke:retopo": "tsx src/smoke-retopo.ts",
+    "smoke:mesh": "tsx src/smoke-mesh.ts",
+    "smoke:skin": "tsx src/smoke-skin.ts",
+    "smoke:retarget": "tsx src/smoke-retarget.ts",
+    "smoke:voxel": "tsx src/smoke-voxel.ts",
+    "smoke:e2e": "tsx src/smoke-real-e2e.ts",
+    "pipeline:real": "tsx src/pipeline-real.ts",
+    "live:client": "tsx src/live-client.ts",
+    "validate": "tsx src/validate.ts",
+    "export:schema": "tsx src/export-json-schema.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel && npm run smoke:e2e"
+  },
+  "dependencies": {
+    "@fastify/websocket": "^11.0.1",
+    "@supabase/supabase-js": "^2.45.4",
+    "fastify": "^5.1.0",
+    "jimp": "^1.6.1",
+    "meshoptimizer": "^1.1.1",
+    "pg": "^8.13.0",
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

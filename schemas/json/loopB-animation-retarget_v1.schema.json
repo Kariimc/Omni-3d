@@ -1,0 +1,233 @@
+{
+  "$ref": "#/definitions/loopB.animation.retarget/v1",
+  "definitions": {
+    "loopB.animation.retarget/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "loopB.animation.retarget/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "loop": {
+          "type": "string",
+          "const": "B_rigging"
+        },
+        "motionSource": {
+          "type": "object",
+          "properties": {
+            "uri": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "fps": {
+              "type": "number"
+            },
+            "frames": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "uri",
+            "fps",
+            "frames"
+          ],
+          "additionalProperties": false
+        },
+        "capture": {
+          "type": "object",
+          "properties": {
+            "model": {
+              "type": "string"
+            },
+            "jointCount": {
+              "type": "integer"
+            },
+            "worldGrounded": {
+              "type": "boolean"
+            },
+            "trajectorySmoothness": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "model",
+            "jointCount",
+            "worldGrounded",
+            "trajectorySmoothness"
+          ],
+          "additionalProperties": false
+        },
+        "retarget": {
+          "type": "object",
+          "properties": {
+            "from": {
+              "type": "string"
+            },
+            "to": {
+              "type": "string",
+              "enum": [
+                "ue5_sk_mannequin",
+                "unity_humanoid_mecanim"
+              ]
+            },
+            "ikSolver": {
+              "type": "string"
+            },
+            "footLock": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "groundPlaneY": {
+                  "type": "number"
+                },
+                "slideResidualCm": {
+                  "type": "number"
+                },
+                "jitterSuppression": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "enabled",
+                "groundPlaneY",
+                "slideResidualCm",
+                "jitterSuppression"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "from",
+            "to",
+            "ikSolver",
+            "footLock"
+          ],
+          "additionalProperties": false
+        },
+        "bakedClip": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "format": {
+              "type": "string"
+            },
+            "fps": {
+              "type": "number"
+            },
+            "durationSec": {
+              "type": "number"
+            },
+            "keyframeCount": {
+              "type": "integer"
+            },
+            "uri": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "tracks": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "bone": {
+                    "type": "string"
+                  },
+                  "keys": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "t": {
+                          "type": "number"
+                        },
+                        "pos": {
+                          "type": "array",
+                          "minItems": 3,
+                          "maxItems": 3,
+                          "items": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        },
+                        "rot": {
+                          "type": "array",
+                          "minItems": 4,
+                          "maxItems": 4,
+                          "items": [
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "t",
+                        "rot"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "bone",
+                  "keys"
+                ],
+                "additionalProperties": false
+              }
+            }
+          },
+          "required": [
+            "name",
+            "format",
+            "fps",
+            "durationSec",
+            "keyframeCount",
+            "uri",
+            "tracks"
+          ],
+          "additionalProperties": false
+        },
+        "nextStage": {
+          "type": "string",
+          "const": "loopC.eitl"
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "loop",
+        "motionSource",
+        "capture",
+        "retarget",
+        "bakedClip",
+        "nextStage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

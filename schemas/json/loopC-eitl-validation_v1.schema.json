@@ -1,0 +1,272 @@
+{
+  "$ref": "#/definitions/loopC.eitl.validation/v1",
+  "definitions": {
+    "loopC.eitl.validation/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "loopC.eitl.validation/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "loop": {
+          "type": "string",
+          "const": "C_eitl"
+        },
+        "engineRules": {
+          "type": "object",
+          "properties": {
+            "engine": {
+              "type": "string",
+              "enum": [
+                "ue5",
+                "unity"
+              ]
+            },
+            "headless": {
+              "type": "boolean"
+            },
+            "rulesetVersion": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "engine",
+            "headless",
+            "rulesetVersion"
+          ],
+          "additionalProperties": false
+        },
+        "costFunction": {
+          "type": "object",
+          "properties": {
+            "formula": {
+              "type": "string"
+            },
+            "weights": {
+              "type": "object",
+              "properties": {
+                "w1": {
+                  "type": "number"
+                },
+                "w2": {
+                  "type": "number"
+                },
+                "w3": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "w1",
+                "w2",
+                "w3"
+              ],
+              "additionalProperties": false
+            },
+            "terms": {
+              "type": "object",
+              "properties": {
+                "L_manifold": {
+                  "type": "number"
+                },
+                "L_intersections": {
+                  "type": "number"
+                },
+                "L_vertex_tear": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "L_manifold",
+                "L_intersections",
+                "L_vertex_tear"
+              ],
+              "additionalProperties": false
+            },
+            "score": {
+              "type": "number"
+            },
+            "threshold": {
+              "type": "number"
+            },
+            "passed": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "formula",
+            "weights",
+            "terms",
+            "score",
+            "threshold",
+            "passed"
+          ],
+          "additionalProperties": false
+        },
+        "checks": {
+          "type": "object",
+          "properties": {
+            "watertight": {
+              "type": "boolean"
+            },
+            "normalsAligned": {
+              "type": "boolean"
+            },
+            "delit": {
+              "type": "boolean"
+            },
+            "vertexTearOnPlayback": {
+              "type": "boolean"
+            },
+            "uvOverlapSecondary": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "watertight",
+            "normalsAligned",
+            "delit",
+            "vertexTearOnPlayback",
+            "uvOverlapSecondary"
+          ],
+          "additionalProperties": false
+        },
+        "microRepair": {
+          "type": "object",
+          "properties": {
+            "triggered": {
+              "type": "boolean"
+            },
+            "failureSites": {
+              "type": "array",
+              "items": {}
+            },
+            "inpaintPasses": {
+              "type": "integer"
+            },
+            "rerunPhases": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "triggered",
+            "failureSites",
+            "inpaintPasses",
+            "rerunPhases"
+          ],
+          "additionalProperties": false
+        },
+        "export": {
+          "type": "object",
+          "properties": {
+            "ue5": {
+              "type": "object",
+              "properties": {
+                "materialInstances": {
+                  "type": "boolean"
+                },
+                "ormPacked": {
+                  "type": "boolean"
+                },
+                "emissiveScalarParam": {
+                  "type": "number"
+                },
+                "unitScaleCm": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "materialInstances",
+                "ormPacked",
+                "emissiveScalarParam",
+                "unitScaleCm"
+              ],
+              "additionalProperties": false
+            },
+            "unity": {
+              "type": "object",
+              "properties": {
+                "pipeline": {
+                  "type": "string",
+                  "enum": [
+                    "urp",
+                    "hdrp"
+                  ]
+                },
+                "lightmapUV": {
+                  "type": "boolean"
+                },
+                "noVertexTearMecanim": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "pipeline",
+                "lightmapUV",
+                "noVertexTearMecanim"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "ue5",
+            "unity"
+          ],
+          "additionalProperties": false
+        },
+        "liveSync": {
+          "type": "object",
+          "properties": {
+            "bridge": {
+              "type": "string"
+            },
+            "endpoint": {
+              "type": "string",
+              "format": "uri"
+            },
+            "engine": {
+              "type": "string",
+              "enum": [
+                "ue5",
+                "unity"
+              ]
+            },
+            "pushStatus": {
+              "type": "string"
+            },
+            "instantiatedMaterials": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "bridge",
+            "endpoint",
+            "engine",
+            "pushStatus",
+            "instantiatedMaterials"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "loop",
+        "engineRules",
+        "costFunction",
+        "checks",
+        "microRepair",
+        "export",
+        "liveSync"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

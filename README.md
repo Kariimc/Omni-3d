@@ -19,8 +19,152 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | Path | Deliverable |
 |------|-------------|
 | `docs/ARCHITECTURE.md` | Closed-loop flow diagram · network blueprint · 11-feature map · conformance check |
-| `docs/payloads/*.json` | API payload schema (example instances) for every stage A1 → C |
+| `docs/payloads/*.json` | Example payload instances for every stage A1 → C |
 | `docs/ui/WORKSPACE_WIREFRAME.md` | Unified 3-phase workspace UI layout |
+| `src/schemas/*.ts` | **Zod schemas — single source of truth** (runtime validation, strict) |
+| `src/validate.ts` | Validates every payload + verifies the closed-loop `nextStage` chain |
+| `src/export-json-schema.ts` | Emits `schemas/json/*` from the Zod schemas |
+| `schemas/json/*.schema.json` | Exported JSON Schema contracts for the UE5/Unity bridges |
+| `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
+| `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
+| `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
+| `src/loops/providers/*` | Real stage impls for all 6 stages: silhouette voxel carving, VoL frame sampler, meshoptimizer retopology, bone-heat skin weights, foot-lock retarget, mesh-integrity EITL |
+| `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
+| `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
+| `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
+| `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
+
+## API
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/` | live web dashboard (3-phase workspace, consumes `/live`) |
+| `GET` | `/health` | liveness + active store + schema count |
+| `GET` | `/schemas` | list payload contracts the API validates against |
+| `POST` | `/pipeline` | validate request → build job envelope → persist (201) |
+| `GET` | `/jobs` | recent jobs (`?limit=`) |
+| `GET` | `/jobs/:id` | fetch a job envelope (404 if absent) |
+| `POST` | `/jobs/:id/advance` | run the next stage; `?defect=` injects an EITL failure to test repair |
+| `GET` | `/jobs/:id/stages` | list the stage payloads emitted by the runner |
+| `POST` | `/jobs/:id/stages` | validate an externally produced stage payload (discriminated union) |
+| `GET` | `/jobs/:id/events` | durable event log (`?from=<seq>`) |
+| `WS` | `/live?jobId=&from=` | replay history from `seq` then stream live (Feature #10) |
+
+```
+npm start              # boot the API (PORT=8787, in-memory store by default)
+npm run smoke          # inject-based route tests, no network/credentials needed
+```
+Set `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` (see `.env.example`) to persist jobs in Supabase;
+apply the migrations in `supabase/migrations/` first.
+
+## Loop runner
+`POST /jobs/:id/advance` drives the job one stage at a time along the canonical chain
+A1→A2→A3→B1→B2→C, emitting a schema-valid payload per step and updating `loops[*]`
+status/progress. Loop C runs the EITL gate `E = w1·manifold + w2·intersections + w3·vertex_tear`;
+if `E > T` it masks the worst failure site and re-runs Phase 2/3 locally (the micro-repair
+back-edge), recording each pass in `microRepair`. Add `?defect=vertex_tear|intersections|manifold`
+to force a failure and watch the repair loop recover.
+
+### Real stage providers
+Each stage generator is deterministic by default but swappable: `advanceJob(job, opts, overrides)`
+takes a `{ stageKey: provider }` map (providers may be async). The first real one is
+`realFrameSampler` (`src/loops/providers/`) — it decodes frames with jimp and scores each by the
+**variance of the Laplacian** (the standard blur metric), rejecting frames below a relative
+threshold, then emits the canonical `FrameSampler` payload. The CV core is pure (testable on raw
+pixel arrays); SfM camera poses remain synthetic until COLMAP is wired. `npm run smoke:sampler`
+verifies the metric, real-PNG blur rejection, and the runner DI seam.
+
+The second real provider is `realRetopology` (Loop A3) — actual triangle **decimation via
+`meshoptimizer` (WASM)** to the job's poly budget, reporting real input/achieved counts. (Quad
+cross-field, UV seams, and PBR remain a separate pass.) `npm run smoke:retopo` decimates an ~80k-tri
+sphere to the budget and checks the counts + the runner DI seam at A3.
+
+The third is `realEitl` (Loop C, `mesh-check.ts`) — real **watertight/manifold analysis** (counts
+faces per edge to find boundary/non-manifold edges + degenerate faces), feeding the measured defect
+ratios into the shared `runEitlGate` (one EITL implementation for synthetic and real). A real hole
+drives `L_manifold` over threshold and triggers the micro-repair back-edge. `npm run smoke:mesh`
+checks closed/holed/non-manifold detection and the runner DI seam at C.
+
+The fourth is `realSkinWeights` (Loop B, `skin-weights.ts`) — **bone-heat skin weights** (Baran &
+Popović): each vertex is assigned to its nearest bone segment, then per bone the heat-equilibrium
+system `(L + H)·w = H·p` is solved over the mesh graph Laplacian by Gauss-Seidel. Weights are a
+partition of unity by construction (`L·1 = 0`); the heat term is edge-length-normalized for scale
+invariance. `npm run smoke:skin` checks partition of unity, per-bone locality, a monotonic falloff
+along a tube, a genuinely blended bone junction, and the runner DI seam at B1.
+
+The fifth is `realRetarget` (Loop B2, `retarget.ts`) — **foot-lock IK + trajectory smoothing** on a
+source motion clip: detect each foot's stance phases (near the ground plane), soft-pin the planted
+foot toward its stance centroid to kill sliding, and smooth the root path — reporting the measured
+slide residual and jitter suppression. `npm run smoke:retarget` walks a clip with deliberate 6cm
+foot slide and jittery root, asserts the slide drops to ~0.6cm and root acceleration is cut ~80%,
+verifies the baked output is actually pinned, and exercises the runner DI seam at B2.
+
+The sixth is `realVoxelDraft` (Loop A2, `voxel-carve.ts`) — **shape-from-silhouette voxel carving**
+(visual hull): start every voxel occupied, then carve any voxel that projects outside an
+orthographic silhouette in any view (intersection of silhouette cones). `npm run smoke:voxel` proves
+the classic properties — a box is reconstructed exactly from its 3 axis silhouettes, a sphere's hull
+contains it but over-estimates (the tri-cylinder solid), carving is monotonic in the number of
+views — plus the runner DI seam at A2.
+
+With this, **all six pipeline stages have a real provider** (A1 sampler, A2 voxel carve, A3 retopo,
+B1 skin weights, B2 retarget, C EITL); the synthetic generators remain the default and the real
+impls inject through the runner's override seam.
+
+### Running the real pipeline end-to-end
+
+`src/loops/real-providers.ts` wires the six real providers into a single set bound to a
+`StageContext` (the real artifacts: decoded frames, silhouettes, a watertight high-poly icosphere,
+a skeleton, a mocap clip). The `realPipeline` job feature flag selects it: `runRealPipeline(job, ctx)`
+drives the job through the **same runner, loop chain, and EITL gate** as the synthetic path — the flag
+only swaps the implementations. Run it outside the test harness:
+
+```bash
+npm run pipeline:real              # all six real providers → status passed
+npm run pipeline:real -- --synthetic   # same runner, synthetic generators
+```
+
+`npm run smoke:e2e` asserts the real run (sharp frames kept, hull carved, mesh decimated, weights
+solved, foot-slide removed, EITL passes → `status: passed`) and that flipping the flag falls back to
+synthetic.
+
+## Live-Sync bridge (Feature #10)
+Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
+events on that channel:
+- `connected` — subscription ack
+- `stage.completed` — per stage: `{ stage, done, status, loops }`
+- `eitl.result` — Loop C gate: `{ passed, score, threshold, repairs, rerunPhases }`
+- `asset.push` — on pass: `{ engine, bundle, endpoint }` (instantiate materials, push the mesh)
+- `pipeline.complete` — terminal `{ status }`
+
+The contract is a single discriminated union (`src/live/events.ts`), also exported to
+`schemas/json/live-event.schema.json` for the engine-side client.
+
+### Engine-side client
+`LiveSyncClient` (`src/live/client.ts`) connects, validates each frame against `LiveEvent`,
+and dispatches to typed handlers. On `asset.push` an `EngineBridge` runs the concrete engine
+operations — for UE5: create Material Instance from the master, assign BaseColor/Normal/ORM/Emissive,
+import the SkeletalMesh at 1 unit = 1 cm, bind the AnimBlueprint, open Live Link (Unity has the
+URP/Mecanim equivalents). Watch any running job live:
+```
+npm run live:client -- <jobId> --url=ws://127.0.0.1:8787 [--from=<seq>]
+```
+
+### Durability & replay
+Every emitted event is persisted to a durable log with a monotonic `seq` (in-memory by default,
+`job_events` table under Supabase). On connect, `/live` **replays** the log from `?from=<seq>`
+(default 0 = full history) and then streams live — subscribing *before* it reads the log so no
+event is missed in the gap. A dropped client resumes with `{ from: client.lastSeq }`; late joiners get the whole history.
+
+### Scaling across instances
+The `EventBus` (`src/live/bus.ts`) is the broadcast seam; the durable log still backs replay.
+`InMemoryEventBus` is the default (single process). Two multi-instance adapters implement the
+same interface:
+- `PostgresNotifyEventBus` (`src/live/pg-bus.ts`) — one channel, `pg_notify` to fan out.
+  `EVENT_BUS=pg` + `DATABASE_URL` (direct/session connection).
+- `SupabaseRealtimeEventBus` (`src/live/supabase-bus.ts`) — over WSS, native for serverless/
+  Supabase. `EVENT_BUS=supabase` + `SUPABASE_URL`/service key.
+
+`npm run smoke:bus` verifies cross-instance fan-out for both against fakes offline, and runs the
+real LISTEN/NOTIFY and Realtime tests when the respective env is set.
 
 ## Payload data flow
 ```
@@ -28,3 +172,10 @@ pipeline.job → A1 frame_sampler → A2 voxel_draft → A3 retopology
             → B1 rigging_skinweights → B2 animation_retarget → C eitl_validation
 ```
 Each payload carries `$omni3d`, `jobId`, `loop`, `nextStage` — a verifiable, self-correcting chain.
+
+## Develop
+```
+npm install
+npm run check          # typecheck + validate payloads + verify loop chain
+npm run export:schema  # regenerate schemas/json/ from the Zod source of truth
+```
