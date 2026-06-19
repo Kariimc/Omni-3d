@@ -15,11 +15,12 @@
     "smoke:mesh": "tsx src/smoke-mesh.ts",
     "smoke:skin": "tsx src/smoke-skin.ts",
     "smoke:retarget": "tsx src/smoke-retarget.ts",
+    "smoke:voxel": "tsx src/smoke-voxel.ts",
     "live:client": "tsx src/live-client.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget"
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel"
   },
   "dependencies": {
     "@fastify/websocket": "^11.0.1",

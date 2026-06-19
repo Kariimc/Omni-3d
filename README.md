@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
-| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL, bone-heat skin weights, foot-lock retarget |
+| `src/loops/providers/*` | Real stage impls for all 6 stages: silhouette voxel carving, VoL frame sampler, meshoptimizer retopology, bone-heat skin weights, foot-lock retarget, mesh-integrity EITL |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
@@ -97,6 +97,17 @@ foot toward its stance centroid to kill sliding, and smooth the root path — re
 slide residual and jitter suppression. `npm run smoke:retarget` walks a clip with deliberate 6cm
 foot slide and jittery root, asserts the slide drops to ~0.6cm and root acceleration is cut ~80%,
 verifies the baked output is actually pinned, and exercises the runner DI seam at B2.
+
+The sixth is `realVoxelDraft` (Loop A2, `voxel-carve.ts`) — **shape-from-silhouette voxel carving**
+(visual hull): start every voxel occupied, then carve any voxel that projects outside an
+orthographic silhouette in any view (intersection of silhouette cones). `npm run smoke:voxel` proves
+the classic properties — a box is reconstructed exactly from its 3 axis silhouettes, a sphere's hull
+contains it but over-estimates (the tri-cylinder solid), carving is monotonic in the number of
+views — plus the runner DI seam at A2.
+
+With this, **all six pipeline stages have a real provider** (A1 sampler, A2 voxel carve, A3 retopo,
+B1 skin weights, B2 retarget, C EITL); the synthetic generators remain the default and the real
+impls inject through the runner's override seam.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
