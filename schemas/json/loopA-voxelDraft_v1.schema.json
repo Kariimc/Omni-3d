@@ -1,0 +1,230 @@
+{
+  "$ref": "#/definitions/loopA.voxelDraft/v1",
+  "definitions": {
+    "loopA.voxelDraft/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "loopA.voxelDraft/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "loop": {
+          "type": "string",
+          "const": "A_structural"
+        },
+        "generationProgress": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "octree": {
+          "type": "object",
+          "properties": {
+            "format": {
+              "type": "string"
+            },
+            "maxDepth": {
+              "type": "integer"
+            },
+            "resolution": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "occupiedVoxels": {
+              "type": "integer"
+            },
+            "bboxMin": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "bboxMax": {
+              "type": "array",
+              "minItems": 3,
+              "maxItems": 3,
+              "items": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ]
+            },
+            "uri": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            }
+          },
+          "required": [
+            "format",
+            "maxDepth",
+            "resolution",
+            "occupiedVoxels",
+            "bboxMin",
+            "bboxMax",
+            "uri"
+          ],
+          "additionalProperties": false
+        },
+        "userEdits": {
+          "type": "object",
+          "properties": {
+            "brushStrokes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "tool": {
+                    "type": "string",
+                    "enum": [
+                      "carve",
+                      "draw",
+                      "smooth"
+                    ]
+                  },
+                  "radius": {
+                    "type": "number"
+                  },
+                  "strength": {
+                    "type": "number"
+                  },
+                  "path": {
+                    "type": "array",
+                    "items": {
+                      "type": "array",
+                      "minItems": 3,
+                      "maxItems": 3,
+                      "items": [
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "number"
+                        }
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "tool",
+                  "radius",
+                  "strength",
+                  "path"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "asymmetry": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "mirrorOverride": {
+                  "type": "boolean"
+                },
+                "regions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string"
+                      },
+                      "axis": {
+                        "type": "string",
+                        "enum": [
+                          "x",
+                          "y",
+                          "z"
+                        ]
+                      },
+                      "lockMirror": {
+                        "type": "boolean"
+                      },
+                      "note": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "axis",
+                      "lockMirror",
+                      "note"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "enabled",
+                "mirrorOverride",
+                "regions"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "brushStrokes",
+            "asymmetry"
+          ],
+          "additionalProperties": false
+        },
+        "latentWeightDeltas": {
+          "type": "string",
+          "pattern": "^asset:\\/\\/.+"
+        },
+        "nextStage": {
+          "type": "string",
+          "const": "loopA.retopology"
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "loop",
+        "generationProgress",
+        "octree",
+        "userEdits",
+        "latentWeightDeltas",
+        "nextStage"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

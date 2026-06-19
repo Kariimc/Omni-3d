@@ -1,0 +1,22 @@
+{
+  "name": "omni3d",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Video-native 3D production studio — closed-loop payload schemas (UE5 & Unity native).",
+  "scripts": {
+    "validate": "tsx src/validate.ts",
+    "export:schema": "tsx src/export-json-schema.ts",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run validate"
+  },
+  "dependencies": {
+    "zod": "^3.23.8",
+    "zod-to-json-schema": "^3.23.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

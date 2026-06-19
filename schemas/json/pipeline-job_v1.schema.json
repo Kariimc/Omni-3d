@@ -1,0 +1,382 @@
+{
+  "$ref": "#/definitions/pipeline.job/v1",
+  "definitions": {
+    "pipeline.job/v1": {
+      "type": "object",
+      "properties": {
+        "$omni3d": {
+          "type": "string",
+          "const": "pipeline.job/v1"
+        },
+        "jobId": {
+          "type": "string",
+          "pattern": "^job_[A-Za-z0-9]+$"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "queued",
+            "running",
+            "passed",
+            "failed"
+          ]
+        },
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "text": {
+              "type": "string"
+            },
+            "images": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^asset:\\/\\/.+"
+              }
+            },
+            "video": {
+              "type": "object",
+              "properties": {
+                "uri": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "container": {
+                  "type": "string",
+                  "enum": [
+                    "mp4",
+                    "mov"
+                  ]
+                },
+                "durationSec": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "fps": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "resolution": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "uri",
+                "container",
+                "durationSec",
+                "fps",
+                "resolution"
+              ],
+              "additionalProperties": false
+            },
+            "motionVideo": {
+              "type": "object",
+              "properties": {
+                "uri": {
+                  "type": "string",
+                  "pattern": "^asset:\\/\\/.+"
+                },
+                "container": {
+                  "type": "string",
+                  "enum": [
+                    "mp4",
+                    "mov"
+                  ]
+                },
+                "durationSec": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "fps": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "required": [
+                "uri",
+                "container",
+                "durationSec",
+                "fps"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "text",
+            "images",
+            "video",
+            "motionVideo"
+          ],
+          "additionalProperties": false
+        },
+        "targets": {
+          "type": "object",
+          "properties": {
+            "engine": {
+              "type": "string",
+              "enum": [
+                "ue5",
+                "unity",
+                "both"
+              ]
+            },
+            "unitScale": {
+              "type": "string",
+              "enum": [
+                "cm",
+                "m"
+              ]
+            },
+            "polyBudget": {
+              "type": "string",
+              "enum": [
+                "mobile_xr",
+                "hero",
+                "nanite"
+              ]
+            },
+            "humanoid": {
+              "type": "boolean"
+            },
+            "rigStandard": {
+              "type": "string",
+              "enum": [
+                "ue5_sk_mannequin",
+                "unity_humanoid_mecanim"
+              ]
+            }
+          },
+          "required": [
+            "engine",
+            "unitScale",
+            "polyBudget",
+            "humanoid",
+            "rigStandard"
+          ],
+          "additionalProperties": false
+        },
+        "features": {
+          "type": "object",
+          "properties": {
+            "voxelDraftTweaker": {
+              "type": "boolean"
+            },
+            "asymmetricalFusion": {
+              "type": "boolean"
+            },
+            "polyBudgetRetopo": {
+              "type": "boolean"
+            },
+            "uvSeamPainter": {
+              "type": "boolean"
+            },
+            "pbrDelight": {
+              "type": "boolean"
+            },
+            "watertightScanner": {
+              "type": "boolean"
+            },
+            "kitbash": {
+              "type": "boolean"
+            },
+            "emissiveMapping": {
+              "type": "boolean"
+            },
+            "styleAnchors": {
+              "type": "boolean"
+            },
+            "liveSync": {
+              "type": "boolean"
+            },
+            "autoRigMocap": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "voxelDraftTweaker",
+            "asymmetricalFusion",
+            "polyBudgetRetopo",
+            "uvSeamPainter",
+            "pbrDelight",
+            "watertightScanner",
+            "kitbash",
+            "emissiveMapping",
+            "styleAnchors",
+            "liveSync",
+            "autoRigMocap"
+          ],
+          "additionalProperties": false
+        },
+        "loops": {
+          "type": "object",
+          "properties": {
+            "A_structural": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string"
+                },
+                "progress": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "running",
+                    "passed",
+                    "failed"
+                  ]
+                }
+              },
+              "required": [
+                "stage",
+                "progress",
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            "B_rigging": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string"
+                },
+                "progress": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "running",
+                    "passed",
+                    "failed"
+                  ]
+                }
+              },
+              "required": [
+                "stage",
+                "progress",
+                "status"
+              ],
+              "additionalProperties": false
+            },
+            "C_eitl": {
+              "type": "object",
+              "properties": {
+                "stage": {
+                  "type": "string"
+                },
+                "progress": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "queued",
+                    "running",
+                    "passed",
+                    "failed"
+                  ]
+                }
+              },
+              "required": [
+                "stage",
+                "progress",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "A_structural",
+            "B_rigging",
+            "C_eitl"
+          ],
+          "additionalProperties": false
+        },
+        "artifacts": {
+          "type": "object",
+          "properties": {
+            "voxelDraft": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "highFiMesh": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "retopoMesh": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "textures": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "riggedMesh": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "animation": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            },
+            "engineBundle": {
+              "type": "string",
+              "pattern": "^asset:\\/\\/.+"
+            }
+          },
+          "required": [
+            "voxelDraft",
+            "highFiMesh",
+            "retopoMesh",
+            "textures",
+            "riggedMesh",
+            "animation",
+            "engineBundle"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "$omni3d",
+        "jobId",
+        "createdAt",
+        "owner",
+        "status",
+        "inputs",
+        "targets",
+        "features",
+        "loops",
+        "artifacts"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

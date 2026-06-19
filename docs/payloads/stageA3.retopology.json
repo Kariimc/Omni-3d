@@ -9,7 +9,6 @@
   },
   "polyBudget": {
     "preset": "hero",
-    "presetEnum": ["mobile_xr", "hero", "nanite"],
     "targetQuads": 32000,
     "achievedQuads": 31480,
     "quadDominancePct": 96.4

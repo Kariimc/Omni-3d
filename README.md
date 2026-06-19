@@ -19,8 +19,12 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | Path | Deliverable |
 |------|-------------|
 | `docs/ARCHITECTURE.md` | Closed-loop flow diagram · network blueprint · 11-feature map · conformance check |
-| `docs/payloads/*.json` | API payload schema (example instances) for every stage A1 → C |
+| `docs/payloads/*.json` | Example payload instances for every stage A1 → C |
 | `docs/ui/WORKSPACE_WIREFRAME.md` | Unified 3-phase workspace UI layout |
+| `src/schemas/*.ts` | **Zod schemas — single source of truth** (runtime validation, strict) |
+| `src/validate.ts` | Validates every payload + verifies the closed-loop `nextStage` chain |
+| `src/export-json-schema.ts` | Emits `schemas/json/*` from the Zod schemas |
+| `schemas/json/*.schema.json` | Exported JSON Schema contracts for the UE5/Unity bridges |
 
 ## Payload data flow
 ```
@@ -28,3 +32,10 @@ pipeline.job → A1 frame_sampler → A2 voxel_draft → A3 retopology
             → B1 rigging_skinweights → B2 animation_retarget → C eitl_validation
 ```
 Each payload carries `$omni3d`, `jobId`, `loop`, `nextStage` — a verifiable, self-correcting chain.
+
+## Develop
+```
+npm install
+npm run check          # typecheck + validate payloads + verify loop chain
+npm run export:schema  # regenerate schemas/json/ from the Zod source of truth
+```
