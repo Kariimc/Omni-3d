@@ -1,0 +1,61 @@
+{
+  "$omni3d": "pipeline.job/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "createdAt": "2026-06-19T14:22:05Z",
+  "owner": "user_8842",
+  "status": "running",
+  "inputs": {
+    "text": "weathered bronze knight statue, glowing blue rune gems on chestplate",
+    "images": ["asset://uploads/ref_front.png"],
+    "video": {
+      "uri": "asset://uploads/orbit_pan.mp4",
+      "container": "mp4",
+      "durationSec": 12.4,
+      "fps": 30,
+      "resolution": [1920, 1080]
+    },
+    "motionVideo": {
+      "uri": "asset://uploads/walk_cycle.mov",
+      "container": "mov",
+      "durationSec": 4.0,
+      "fps": 60
+    }
+  },
+  "targets": {
+    "engine": "ue5",
+    "engineEnum": ["ue5", "unity", "both"],
+    "unitScale": "cm",
+    "polyBudget": "hero",
+    "polyBudgetEnum": ["mobile_xr", "hero", "nanite"],
+    "humanoid": true,
+    "rigStandard": "ue5_sk_mannequin",
+    "rigStandardEnum": ["ue5_sk_mannequin", "unity_humanoid_mecanim"]
+  },
+  "features": {
+    "voxelDraftTweaker": true,
+    "asymmetricalFusion": true,
+    "polyBudgetRetopo": true,
+    "uvSeamPainter": true,
+    "pbrDelight": true,
+    "watertightScanner": true,
+    "kitbash": false,
+    "emissiveMapping": true,
+    "styleAnchors": true,
+    "liveSync": true,
+    "autoRigMocap": true
+  },
+  "loops": {
+    "A_structural": { "stage": "retopology", "progress": 1.0, "status": "passed" },
+    "B_rigging": { "stage": "skin_weighting", "progress": 1.0, "status": "passed" },
+    "C_eitl": { "stage": "live_sync", "progress": 0.62, "status": "running" }
+  },
+  "artifacts": {
+    "voxelDraft": "asset://job_01J8Z9K3/voxel_draft.svo",
+    "highFiMesh": "asset://job_01J8Z9K3/mesh_highfi.glb",
+    "retopoMesh": "asset://job_01J8Z9K3/mesh_retopo.glb",
+    "textures": "asset://job_01J8Z9K3/pbr/",
+    "riggedMesh": "asset://job_01J8Z9K3/rigged.fbx",
+    "animation": "asset://job_01J8Z9K3/anim_walk.fbx",
+    "engineBundle": "asset://job_01J8Z9K3/ue5_bundle.uasset"
+  }
+}

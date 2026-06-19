@@ -1,0 +1,49 @@
+{
+  "$omni3d": "loopB.rigging.skinWeights/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "B_rigging",
+  "input": { "retopoMesh": "asset://job_01J8Z9K3/mesh_retopo.glb", "vertices": 31840 },
+  "rigStandard": "ue5_sk_mannequin",
+  "rigStandardEnum": ["ue5_sk_mannequin", "unity_humanoid_mecanim"],
+  "jointPrediction": { "model": "volumetric_gnn", "voxelGrid": [64, 64, 64], "confidence": 0.93 },
+  "skeleton": {
+    "root": "root",
+    "boneCount": 67,
+    "namingConvention": "ue5_sk_mannequin",
+    "bones": [
+      { "name": "root", "parent": null, "head": [0.0, 0.0, 0.0], "tail": [0.0, 0.02, 0.0] },
+      { "name": "pelvis", "parent": "root", "head": [0.0, 0.95, 0.0], "tail": [0.0, 1.02, 0.0] },
+      { "name": "spine_01", "parent": "pelvis", "head": [0.0, 1.02, 0.0], "tail": [0.0, 1.14, 0.0] },
+      { "name": "spine_02", "parent": "spine_01", "head": [0.0, 1.14, 0.0], "tail": [0.0, 1.28, 0.0] },
+      { "name": "spine_03", "parent": "spine_02", "head": [0.0, 1.28, 0.0], "tail": [0.0, 1.42, 0.0] },
+      { "name": "clavicle_l", "parent": "spine_03", "head": [0.04, 1.40, 0.0], "tail": [0.16, 1.42, 0.0] },
+      { "name": "upperarm_l", "parent": "clavicle_l", "head": [0.16, 1.42, 0.0], "tail": [0.16, 1.16, 0.0] },
+      { "name": "lowerarm_l", "parent": "upperarm_l", "head": [0.16, 1.16, 0.0], "tail": [0.16, 0.92, 0.0] },
+      { "name": "hand_l", "parent": "lowerarm_l", "head": [0.16, 0.92, 0.0], "tail": [0.16, 0.80, 0.0] }
+    ]
+  },
+  "skinWeighting": {
+    "method": "volumetric_heat_diffusion",
+    "maxInfluencesPerVertex": 4,
+    "normalized": true,
+    "sample": [
+      {
+        "vertex": 10422,
+        "influences": [
+          { "bone": "upperarm_l", "weight": 0.71 },
+          { "bone": "lowerarm_l", "weight": 0.21 },
+          { "bone": "clavicle_l", "weight": 0.08 }
+        ]
+      },
+      {
+        "vertex": 20488,
+        "influences": [
+          { "bone": "spine_02", "weight": 0.55 },
+          { "bone": "spine_03", "weight": 0.30 },
+          { "bone": "spine_01", "weight": 0.15 }
+        ]
+      }
+    ]
+  },
+  "nextStage": "loopB.animationRetarget"
+}

@@ -1,0 +1,37 @@
+{
+  "$omni3d": "loopA.voxelDraft/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "A_structural",
+  "generationProgress": 0.30,
+  "octree": {
+    "format": "sparse_voxel_octree",
+    "maxDepth": 9,
+    "resolution": [256, 256, 256],
+    "occupiedVoxels": 184213,
+    "bboxMin": [-0.55, 0.0, -0.40],
+    "bboxMax": [0.55, 1.85, 0.40],
+    "uri": "asset://job_01J8Z9K3/voxel_draft.svo"
+  },
+  "userEdits": {
+    "brushStrokes": [
+      {
+        "tool": "carve", "radius": 0.04, "strength": 0.8,
+        "path": [[0.12, 1.30, 0.20], [0.14, 1.28, 0.21], [0.16, 1.26, 0.22]]
+      },
+      {
+        "tool": "smooth", "radius": 0.06, "strength": 0.5,
+        "path": [[-0.20, 0.90, 0.10], [-0.18, 0.88, 0.11]]
+      }
+    ],
+    "toolEnum": ["carve", "draw", "smooth"],
+    "asymmetry": {
+      "enabled": true,
+      "mirrorOverride": true,
+      "regions": [
+        { "name": "left_pauldron", "axis": "x", "lockMirror": false, "note": "battle-damaged, non-mirrored" }
+      ]
+    }
+  },
+  "latentWeightDeltas": "asset://job_01J8Z9K3/latent_delta_a2.npz",
+  "nextStage": "loopA.retopology"
+}

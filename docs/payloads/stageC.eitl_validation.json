@@ -1,0 +1,38 @@
+{
+  "$omni3d": "loopC.eitl.validation/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "C_eitl",
+  "engineRules": { "engine": "ue5", "headless": true, "rulesetVersion": "5.4" },
+  "costFunction": {
+    "formula": "w1*L_manifold + w2*L_intersections + w3*L_vertex_tear",
+    "weights": { "w1": 0.40, "w2": 0.35, "w3": 0.25 },
+    "terms": { "L_manifold": 0.00, "L_intersections": 0.02, "L_vertex_tear": 0.05 },
+    "score": 0.0195,
+    "threshold": 0.05,
+    "passed": true
+  },
+  "checks": {
+    "watertight": true,
+    "normalsAligned": true,
+    "delit": true,
+    "vertexTearOnPlayback": false,
+    "uvOverlapSecondary": false
+  },
+  "microRepair": {
+    "triggered": false,
+    "failureSites": [],
+    "inpaintPasses": 0,
+    "rerunPhases": []
+  },
+  "export": {
+    "ue5": { "materialInstances": true, "ormPacked": true, "emissiveScalarParam": 2.5, "unitScaleCm": true },
+    "unity": { "pipeline": "urp", "lightmapUV": true, "noVertexTearMecanim": true }
+  },
+  "liveSync": {
+    "bridge": "websocket",
+    "endpoint": "ws://127.0.0.1:8788/omni3d",
+    "engine": "ue5",
+    "pushStatus": "streaming",
+    "instantiatedMaterials": true
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$omni3d": "loopA.retopology.io/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "A_structural",
+  "input": {
+    "highFiMesh": "asset://job_01J8Z9K3/mesh_highfi.glb",
+    "triangles": 1842300,
+    "extraction": "flexicubes"
+  },
+  "polyBudget": {
+    "preset": "hero",
+    "presetEnum": ["mobile_xr", "hero", "nanite"],
+    "targetQuads": 32000,
+    "achievedQuads": 31480,
+    "quadDominancePct": 96.4
+  },
+  "curvatureField": {
+    "type": "anisotropic_cross_field",
+    "alignment": "principal_curvature",
+    "singularities": 14,
+    "smoothnessLambda": 0.35
+  },
+  "uvSeams": {
+    "userPainted": true,
+    "immutableSeams": [
+      { "name": "waist", "polyline": [[0.0, 0.95, 0.40], [0.20, 0.95, 0.30], [0.0, 0.95, -0.40]] }
+    ],
+    "islands": 7,
+    "stretchPct": 2.1,
+    "packingEfficiencyPct": 88.0,
+    "secondaryUV": true
+  },
+  "pbr": {
+    "inverseRender": "spherical_harmonics_l2",
+    "delit": true,
+    "resolution": 4096,
+    "emissiveTerms": ["rune gems", "blue glow"],
+    "maps": {
+      "albedo": "asset://job_01J8Z9K3/pbr/albedo.png",
+      "normal": "asset://job_01J8Z9K3/pbr/normal.png",
+      "roughness": "asset://job_01J8Z9K3/pbr/roughness.png",
+      "metallic": "asset://job_01J8Z9K3/pbr/metallic.png",
+      "emissive": "asset://job_01J8Z9K3/pbr/emissive_mask.png"
+    }
+  },
+  "watertight": { "manifold": true, "holes": 0, "nonManifoldEdges": 0, "zeroThicknessSheets": 0 },
+  "nextStage": "loopB.rigging"
+}

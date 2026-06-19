@@ -1,0 +1,48 @@
+{
+  "$omni3d": "loopB.animation.retarget/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "B_rigging",
+  "motionSource": { "uri": "asset://uploads/walk_cycle.mov", "fps": 60, "frames": 240 },
+  "capture": {
+    "model": "wham_hmr",
+    "jointCount": 51,
+    "worldGrounded": true,
+    "trajectorySmoothness": 0.92
+  },
+  "retarget": {
+    "from": "wham_51",
+    "to": "ue5_sk_mannequin",
+    "ikSolver": "analytical_two_bone",
+    "footLock": {
+      "enabled": true,
+      "groundPlaneY": 0.0,
+      "slideResidualCm": 0.3,
+      "jitterSuppression": 0.85
+    }
+  },
+  "bakedClip": {
+    "name": "walk_cycle",
+    "format": "fbx_animstack",
+    "fps": 30,
+    "durationSec": 2.0,
+    "keyframeCount": 61,
+    "uri": "asset://job_01J8Z9K3/anim_walk.fbx",
+    "tracks": [
+      {
+        "bone": "pelvis",
+        "keys": [
+          { "t": 0.0, "pos": [0.0, 0.95, 0.0], "rot": [0.0, 0.0, 0.0, 1.0] },
+          { "t": 1.0, "pos": [0.0, 0.93, 0.42], "rot": [0.0, 0.04, 0.0, 0.999] }
+        ]
+      },
+      {
+        "bone": "thigh_l",
+        "keys": [
+          { "t": 0.0, "rot": [0.20, 0.0, 0.0, 0.979] },
+          { "t": 0.5, "rot": [-0.18, 0.0, 0.0, 0.983] }
+        ]
+      }
+    ]
+  },
+  "nextStage": "loopC.eitl"
+}

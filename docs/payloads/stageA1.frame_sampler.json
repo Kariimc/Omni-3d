@@ -1,0 +1,31 @@
+{
+  "$omni3d": "loopA.frameSampler.out/v1",
+  "jobId": "job_01J8Z9K3QWERTY",
+  "loop": "A_structural",
+  "source": { "uri": "asset://uploads/orbit_pan.mp4", "fps": 30, "frames": 372 },
+  "sfm": {
+    "solver": "colmap",
+    "intrinsics": { "model": "PINHOLE", "fx": 1462.3, "fy": 1462.3, "cx": 960.0, "cy": 540.0 },
+    "reprojectionErrorPx": 0.48,
+    "registeredFrames": 84
+  },
+  "sharpnessThreshold": 0.62,
+  "selectedFrames": [
+    {
+      "idx": 12, "tSec": 0.40, "sharpness": 0.91, "blurRejected": false,
+      "camera": { "position": [0.0, 1.2, 3.4], "quat": [0.0, 0.0, 0.0, 1.0], "fovDeg": 49.1 }
+    },
+    {
+      "idx": 31, "tSec": 1.03, "sharpness": 0.88, "blurRejected": false,
+      "camera": { "position": [2.1, 1.2, 2.6], "quat": [0.0, 0.34, 0.0, 0.94], "fovDeg": 49.1 }
+    },
+    {
+      "idx": 58, "tSec": 1.93, "sharpness": 0.84, "blurRejected": false,
+      "camera": { "position": [3.3, 1.2, 0.1], "quat": [0.0, 0.70, 0.0, 0.70], "fovDeg": 49.1 }
+    }
+  ],
+  "rejectedFrames": [
+    { "idx": 22, "tSec": 0.73, "sharpness": 0.21, "blurRejected": true, "reason": "motion_blur" }
+  ],
+  "nextStage": "loopA.voxelDraft"
+}
