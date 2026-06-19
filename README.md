@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
-| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL |
+| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL, bone-heat skin weights |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
@@ -83,6 +83,13 @@ faces per edge to find boundary/non-manifold edges + degenerate faces), feeding 
 ratios into the shared `runEitlGate` (one EITL implementation for synthetic and real). A real hole
 drives `L_manifold` over threshold and triggers the micro-repair back-edge. `npm run smoke:mesh`
 checks closed/holed/non-manifold detection and the runner DI seam at C.
+
+The fourth is `realSkinWeights` (Loop B, `skin-weights.ts`) — **bone-heat skin weights** (Baran &
+Popović): each vertex is assigned to its nearest bone segment, then per bone the heat-equilibrium
+system `(L + H)·w = H·p` is solved over the mesh graph Laplacian by Gauss-Seidel. Weights are a
+partition of unity by construction (`L·1 = 0`); the heat term is edge-length-normalized for scale
+invariance. `npm run smoke:skin` checks partition of unity, per-bone locality, a monotonic falloff
+along a tube, a genuinely blended bone junction, and the runner DI seam at B1.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed

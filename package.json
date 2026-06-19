@@ -13,11 +13,12 @@
     "smoke:sampler": "tsx src/smoke-sampler.ts",
     "smoke:retopo": "tsx src/smoke-retopo.ts",
     "smoke:mesh": "tsx src/smoke-mesh.ts",
+    "smoke:skin": "tsx src/smoke-skin.ts",
     "live:client": "tsx src/live-client.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh"
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin"
   },
   "dependencies": {
     "@fastify/websocket": "^11.0.1",
