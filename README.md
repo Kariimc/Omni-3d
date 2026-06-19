@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
-| `src/live/*` | Live-Sync protocol, pub/sub bus (memory + Postgres), client + UE5/Unity bridge |
+| `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
@@ -90,12 +90,16 @@ Every emitted event is persisted to a durable log with a monotonic `seq` (in-mem
 event is missed in the gap. A dropped client resumes with `{ from: client.lastSeq }`; late joiners get the whole history.
 
 ### Scaling across instances
-The `EventBus` (`src/live/bus.ts`) is the broadcast seam. `InMemoryEventBus` is the default
-(single process); `PostgresNotifyEventBus` (`src/live/pg-bus.ts`) fans events out across many API
-instances via Postgres `LISTEN/NOTIFY` — every instance LISTENs on one channel, `publish` issues
-`pg_notify`, and the durable log still backs replay. Select it with `EVENT_BUS=pg` + `DATABASE_URL`.
-`npm run smoke:bus` verifies cross-instance fan-out against a fake wire offline, and runs a real
-LISTEN/NOTIFY test when `DATABASE_URL` is set.
+The `EventBus` (`src/live/bus.ts`) is the broadcast seam; the durable log still backs replay.
+`InMemoryEventBus` is the default (single process). Two multi-instance adapters implement the
+same interface:
+- `PostgresNotifyEventBus` (`src/live/pg-bus.ts`) — one channel, `pg_notify` to fan out.
+  `EVENT_BUS=pg` + `DATABASE_URL` (direct/session connection).
+- `SupabaseRealtimeEventBus` (`src/live/supabase-bus.ts`) — over WSS, native for serverless/
+  Supabase. `EVENT_BUS=supabase` + `SUPABASE_URL`/service key.
+
+`npm run smoke:bus` verifies cross-instance fan-out for both against fakes offline, and runs the
+real LISTEN/NOTIFY and Realtime tests when the respective env is set.
 
 ## Payload data flow
 ```
