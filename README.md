@@ -109,6 +109,23 @@ With this, **all six pipeline stages have a real provider** (A1 sampler, A2 voxe
 B1 skin weights, B2 retarget, C EITL); the synthetic generators remain the default and the real
 impls inject through the runner's override seam.
 
+### Running the real pipeline end-to-end
+
+`src/loops/real-providers.ts` wires the six real providers into a single set bound to a
+`StageContext` (the real artifacts: decoded frames, silhouettes, a watertight high-poly icosphere,
+a skeleton, a mocap clip). The `realPipeline` job feature flag selects it: `runRealPipeline(job, ctx)`
+drives the job through the **same runner, loop chain, and EITL gate** as the synthetic path — the flag
+only swaps the implementations. Run it outside the test harness:
+
+```bash
+npm run pipeline:real              # all six real providers → status passed
+npm run pipeline:real -- --synthetic   # same runner, synthetic generators
+```
+
+`npm run smoke:e2e` asserts the real run (sharp frames kept, hull carved, mesh decimated, weights
+solved, foot-slide removed, EITL passes → `status: passed`) and that flipping the flag falls back to
+synthetic.
+
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
 events on that channel:

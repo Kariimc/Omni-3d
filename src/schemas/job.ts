@@ -53,6 +53,7 @@ export const Features = z
     styleAnchors: z.boolean(),
     liveSync: z.boolean(),
     autoRigMocap: z.boolean(),
+    realPipeline: z.boolean().default(false),
   })
   .strict();
 

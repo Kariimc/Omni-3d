@@ -38,6 +38,7 @@ const DEFAULT_FEATURES: z.infer<typeof Features> = {
   styleAnchors: false,
   liveSync: true,
   autoRigMocap: true,
+  realPipeline: false,
 };
 
 export function newJobId(): string {
