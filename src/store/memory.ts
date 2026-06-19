@@ -1,3 +1,4 @@
+import type { LiveEvent } from "../live/events";
 import type { PipelineJob, StagePayload } from "../schemas";
 import type { JobStore } from "./types";
 
@@ -6,6 +7,8 @@ export class MemoryJobStore implements JobStore {
   readonly kind = "memory";
   private jobs = new Map<string, PipelineJob>();
   private stages = new Map<string, StagePayload[]>();
+  private events = new Map<string, LiveEvent[]>();
+  private seq = 0;
 
   async put(job: PipelineJob): Promise<void> {
     this.jobs.set(job.jobId, job);
@@ -29,5 +32,17 @@ export class MemoryJobStore implements JobStore {
 
   async getStages(jobId: string): Promise<StagePayload[]> {
     return [...(this.stages.get(jobId) ?? [])];
+  }
+
+  async appendEvent(jobId: string, event: LiveEvent): Promise<LiveEvent> {
+    const stored = { ...event, seq: ++this.seq } as LiveEvent;
+    const arr = this.events.get(jobId) ?? [];
+    arr.push(stored);
+    this.events.set(jobId, arr);
+    return stored;
+  }
+
+  async getEvents(jobId: string, fromSeq = 0): Promise<LiveEvent[]> {
+    return (this.events.get(jobId) ?? []).filter((e) => (e.seq ?? 0) > fromSeq);
   }
 }

@@ -43,7 +43,8 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `POST` | `/jobs/:id/advance` | run the next stage; `?defect=` injects an EITL failure to test repair |
 | `GET` | `/jobs/:id/stages` | list the stage payloads emitted by the runner |
 | `POST` | `/jobs/:id/stages` | validate an externally produced stage payload (discriminated union) |
-| `WS` | `/live?jobId=` | stream runner events to a UE5/Unity client (Feature #10) |
+| `GET` | `/jobs/:id/events` | durable event log (`?from=<seq>`) |
+| `WS` | `/live?jobId=&from=` | replay history from `seq` then stream live (Feature #10) |
 
 ```
 npm start              # boot the API (PORT=8787, in-memory store by default)
@@ -79,8 +80,16 @@ operations — for UE5: create Material Instance from the master, assign BaseCol
 import the SkeletalMesh at 1 unit = 1 cm, bind the AnimBlueprint, open Live Link (Unity has the
 URP/Mecanim equivalents). Watch any running job live:
 ```
-npm run live:client -- <jobId> --url=ws://127.0.0.1:8787
+npm run live:client -- <jobId> --url=ws://127.0.0.1:8787 [--from=<seq>]
 ```
+
+### Durability & replay
+Every emitted event is persisted to a durable log with a monotonic `seq` (in-memory by default,
+`job_events` table under Supabase). On connect, `/live` **replays** the log from `?from=<seq>`
+(default 0 = full history) and then streams live — subscribing *before* it reads the log so no
+event is missed in the gap. A dropped client resumes with `{ from: client.lastSeq }`; late joiners
+get the whole history. The `EventBus` (`src/live/bus.ts`) is the broadcast seam — swap
+`InMemoryEventBus` for a Redis/Postgres-NOTIFY adapter to fan out across multiple API instances.
 
 ## Payload data flow
 ```

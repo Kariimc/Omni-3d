@@ -15,6 +15,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [
@@ -146,6 +149,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [
@@ -189,6 +195,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [
@@ -228,6 +237,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [
@@ -261,6 +273,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [
@@ -283,6 +298,9 @@
             },
             "ts": {
               "type": "string"
+            },
+            "seq": {
+              "type": "integer"
             }
           },
           "required": [

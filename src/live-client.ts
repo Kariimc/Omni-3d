@@ -5,9 +5,11 @@ import { ConsoleEngineBridge } from "./live/engine";
 const args = process.argv.slice(2);
 const jobId = args.find((a) => !a.startsWith("--"));
 const base = args.find((a) => a.startsWith("--url="))?.slice("--url=".length) ?? "ws://127.0.0.1:8787";
+const fromArg = args.find((a) => a.startsWith("--from="))?.slice("--from=".length);
+const from = fromArg ? Number(fromArg) : 0;
 
 if (!jobId) {
-  console.error("usage: tsx src/live-client.ts <jobId> [--url=ws://host:port]");
+  console.error("usage: tsx src/live-client.ts <jobId> [--url=ws://host:port] [--from=<seq>]");
   process.exit(2);
 }
 
@@ -40,7 +42,7 @@ const client = new LiveSyncClient(base, jobId, {
   },
   onError: (m) => console.error(`✗ ${m}`),
   onClose: () => console.log("○ disconnected"),
-});
+}, { from });
 
 client.connect().catch((err: unknown) => {
   console.error(err instanceof Error ? err.message : err);

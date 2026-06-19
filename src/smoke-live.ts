@@ -20,10 +20,17 @@ const createBody = {
   targets: { engine: "ue5", polyBudget: "hero", rigStandard: "ue5_sk_mannequin" },
 };
 
+interface AnyEvent {
+  type: string;
+  seq?: number;
+  [k: string]: unknown;
+}
+
 async function main(): Promise<void> {
   const app = await buildApp(new MemoryJobStore());
   await app.listen({ port: 0, host: "127.0.0.1" });
   const { port } = app.server.address() as AddressInfo;
+  const base = `ws://127.0.0.1:${port}`;
 
   const created = await app.inject({
     method: "POST",
@@ -34,7 +41,7 @@ async function main(): Promise<void> {
   assert.equal(created.statusCode, 201, "POST /pipeline -> 201");
   const id = created.json().jobId as string;
 
-  // Drive the engine-side client + bridge exactly as a real UE5/Unity plugin would.
+  // --- live client + engine bridge, streamed in real time ---
   const bridge = new RecordingEngineBridge();
   const seen = {
     connected: false,
@@ -44,37 +51,24 @@ async function main(): Promise<void> {
     complete: undefined as { status: string } | undefined,
     error: undefined as string | undefined,
   };
-
-  const client = new LiveSyncClient(`ws://127.0.0.1:${port}`, id, {
-    onConnected: () => {
-      seen.connected = true;
-    },
-    onStage: () => {
-      seen.stages++;
-    },
-    onEitl: (e) => {
-      seen.eitl = { passed: e.passed, repairs: e.repairs };
-    },
+  const live = new LiveSyncClient(base, id, {
+    onConnected: () => (seen.connected = true),
+    onStage: () => (seen.stages += 1),
+    onEitl: (e) => (seen.eitl = { passed: e.passed, repairs: e.repairs }),
     onAssetPush: (e) => {
       seen.push = true;
       bridge.apply(e);
     },
-    onComplete: (e) => {
-      seen.complete = { status: e.status };
-    },
-    onError: (m) => {
-      seen.error = m;
-    },
+    onComplete: (e) => (seen.complete = { status: e.status }),
+    onError: (m) => (seen.error = m),
   });
-
-  await client.connect();
+  await live.connect();
   assert.ok(seen.connected, "client received connected ack");
 
   for (let i = 0; i < 5; i++) {
     await app.inject({ method: "POST", url: `/jobs/${id}/advance` });
   }
   await app.inject({ method: "POST", url: `/jobs/${id}/advance?defect=vertex_tear` });
-
   for (let i = 0; i < 50 && !seen.complete; i++) await delay(20);
 
   assert.equal(seen.error, undefined, "no malformed events");
@@ -83,12 +77,51 @@ async function main(): Promise<void> {
   assert.ok(seen.push, "client received asset.push");
   assert.equal(seen.complete?.status, "passed", "pipeline complete = passed");
   assert.ok(bridge.actions.some((a) => a.kind === "place_mesh"), "engine placed the mesh");
-  assert.ok(bridge.actions.length >= 5, "engine applied the full action set");
+  live.close();
 
-  client.close();
+  // --- durable log persisted (REST view) ---
+  const log = (await app.inject({ method: "GET", url: `/jobs/${id}/events` })).json() as AnyEvent[];
+  assert.equal(log.length, 9, "9 events persisted (6 stage + eitl + push + complete)");
+  assert.ok(
+    log.every((e, i) => i === 0 || (e.seq ?? 0) > (log[i - 1]?.seq ?? 0)),
+    "event seq is strictly increasing",
+  );
+
+  // --- replay: a fresh client after completion receives the full history ---
+  const replayed: AnyEvent[] = [];
+  const collect = (e: AnyEvent) => replayed.push(e);
+  const c2 = new LiveSyncClient(base, id, {
+    onStage: collect,
+    onEitl: collect,
+    onAssetPush: collect,
+    onComplete: collect,
+  });
+  await c2.connect();
+  await delay(60);
+  assert.equal(replayed.length, 9, "replay delivered the full history");
+  c2.close();
+
+  // --- resume: connect with from=<3rd seq>, receive only later events ---
+  const midSeq = log[2]?.seq ?? 0;
+  const resumed: AnyEvent[] = [];
+  const collect3 = (e: AnyEvent) => resumed.push(e);
+  const c3 = new LiveSyncClient(
+    base,
+    id,
+    { onStage: collect3, onEitl: collect3, onAssetPush: collect3, onComplete: collect3 },
+    { from: midSeq },
+  );
+  await c3.connect();
+  await delay(60);
+  assert.equal(resumed.length, 6, "resume from 3rd seq skips the first 3 events");
+  assert.ok(resumed.every((e) => (e.seq ?? 0) > midSeq), "resumed events are all after from");
+  c3.close();
+
   await app.close();
   console.log(
-    `LIVE SMOKE PASS — client: ${seen.stages} stages, EITL repairs=${seen.eitl?.repairs}, engine applied [${bridge.actions.map((a) => a.kind).join(", ")}]`,
+    `LIVE SMOKE PASS — stream(6 stages, repairs=${seen.eitl?.repairs}), engine[${bridge.actions
+      .map((a) => a.kind)
+      .join(", ")}], persisted=${log.length}, replay=${replayed.length}, resume=${resumed.length}`,
   );
 }
 

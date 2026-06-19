@@ -1,7 +1,7 @@
 import fastifyWebsocket from "@fastify/websocket";
 import Fastify, { type FastifyInstance } from "fastify";
 import { InMemoryEventBus, type EventBus } from "./live/bus";
-import { connectedEvent, errorEvent, eventsForAdvance } from "./live/events";
+import { connectedEvent, errorEvent, eventsForAdvance, type LiveEvent } from "./live/events";
 import { advanceJob } from "./loops/runner";
 import { SCHEMAS, StagePayload } from "./schemas";
 import { CreatePipelineRequest, buildJobEnvelope } from "./schemas/request";
@@ -57,8 +57,7 @@ export async function buildApp(
     return job;
   });
 
-  // Drive the closed-loop pipeline forward one stage (A1 -> A2 -> ... -> C),
-  // and stream the resulting events to any connected Live-Sync clients.
+  // Drive the pipeline one stage forward; persist each event then stream it.
   app.post("/jobs/:id/advance", async (req, reply) => {
     const { id } = req.params as { id: string };
     const job = await store.get(id);
@@ -73,7 +72,8 @@ export async function buildApp(
     await store.put(result.job);
     await store.putStage(id, result.emitted);
     for (const ev of eventsForAdvance(result.job, result.emitted, result.done)) {
-      bus.publish(id, ev);
+      const persisted = await store.appendEvent(id, ev);
+      bus.publish(id, persisted);
     }
     return reply.code(200).send({
       done: result.done,
@@ -85,7 +85,6 @@ export async function buildApp(
     });
   });
 
-  // List the stage payloads the runner has emitted, in order.
   app.get("/jobs/:id/stages", async (req, reply) => {
     const { id } = req.params as { id: string };
     const job = await store.get(id);
@@ -93,7 +92,15 @@ export async function buildApp(
     return store.getStages(id);
   });
 
-  // Validate-and-ack an externally produced stage payload via the discriminated union.
+  // REST view of the durable event log (also drives WS replay).
+  app.get("/jobs/:id/events", async (req, reply) => {
+    const { id } = req.params as { id: string };
+    const job = await store.get(id);
+    if (!job) return reply.code(404).send({ error: "not_found", id });
+    const { from } = req.query as { from?: string };
+    return store.getEvents(id, from ? Number(from) : 0);
+  });
+
   app.post("/jobs/:id/stages", async (req, reply) => {
     const { id } = req.params as { id: string };
     const job = await store.get(id);
@@ -111,20 +118,45 @@ export async function buildApp(
     return reply.code(200).send({ accepted: true, stage: parsed.data.$omni3d, jobId: id });
   });
 
-  // Live-Sync bridge (Feature #10): stream a job's runner events to UE5/Unity.
-  // Connect with ws://host/live?jobId=<id>.
-  app.get("/live", { websocket: true }, (conn, req) => {
+  // Live-Sync bridge (Feature #10): replay the durable log from ?from=<seq>, then
+  // stream live. Subscribe before reading the log so no event is missed in between.
+  app.get("/live", { websocket: true }, async (conn, req) => {
     const raw = conn as unknown as { socket?: Sock } & Sock;
     const socket: Sock = raw.socket ?? raw;
-    const { jobId } = req.query as { jobId?: string };
+    const { jobId, from } = req.query as { jobId?: string; from?: string };
     if (!jobId) {
       socket.send(JSON.stringify(errorEvent("query param 'jobId' is required")));
       socket.close();
       return;
     }
+
     socket.send(JSON.stringify(connectedEvent(jobId)));
-    const unsubscribe = bus.subscribe(jobId, (ev) => socket.send(JSON.stringify(ev)));
+
+    const fromSeq = from ? Number(from) : 0;
+    let lastSent = Number.isFinite(fromSeq) ? fromSeq : 0;
+    let replaying = true;
+    const buffered: LiveEvent[] = [];
+    const send = (ev: LiveEvent): void => {
+      const seq = ev.seq ?? 0;
+      if (seq > lastSent) {
+        socket.send(JSON.stringify(ev));
+        lastSent = seq;
+      }
+    };
+
+    const unsubscribe = bus.subscribe(jobId, (ev) => {
+      if (replaying) buffered.push(ev);
+      else send(ev);
+    });
     socket.on("close", unsubscribe);
+
+    try {
+      for (const ev of await store.getEvents(jobId, lastSent)) send(ev);
+    } catch {
+      // best-effort replay; continue with the live stream
+    }
+    replaying = false;
+    for (const ev of buffered) send(ev);
   });
 
   return app;

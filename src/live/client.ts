@@ -12,14 +12,33 @@ export interface LiveSyncHandlers {
   onClose?(): void;
 }
 
+export interface LiveSyncOptions {
+  /** Resume the stream from this seq (skip events already seen). */
+  from?: number;
+}
+
 /** Engine-side WebSocket client for the Live-Sync bridge. Validates every frame
- *  against the LiveEvent contract before dispatching to typed handlers. */
+ *  against the LiveEvent contract before dispatching to typed handlers, and tracks
+ *  the last seq so a dropped connection can resume with { from: client.lastSeq }. */
 export class LiveSyncClient {
   private ws?: WebSocket;
   private readonly url: string;
+  private _lastSeq: number;
 
-  constructor(baseUrl: string, jobId: string, private readonly handlers: LiveSyncHandlers = {}) {
-    this.url = `${baseUrl.replace(/\/$/, "")}/live?jobId=${encodeURIComponent(jobId)}`;
+  constructor(
+    baseUrl: string,
+    jobId: string,
+    private readonly handlers: LiveSyncHandlers = {},
+    opts: LiveSyncOptions = {},
+  ) {
+    const from = opts.from ?? 0;
+    this._lastSeq = from;
+    const q = `jobId=${encodeURIComponent(jobId)}${from > 0 ? `&from=${from}` : ""}`;
+    this.url = `${baseUrl.replace(/\/$/, "")}/live?${q}`;
+  }
+
+  get lastSeq(): number {
+    return this._lastSeq;
   }
 
   /** Resolves once the server's `connected` ack has been received. */
@@ -35,6 +54,7 @@ export class LiveSyncClient {
           this.handlers.onError?.("malformed live event");
           return;
         }
+        if (typeof ev.seq === "number" && ev.seq > this._lastSeq) this._lastSeq = ev.seq;
         if (ev.type === "connected") resolve();
         this.dispatch(ev);
       });

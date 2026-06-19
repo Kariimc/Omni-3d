@@ -1,12 +1,14 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { LiveEvent } from "../live/events";
 import { PipelineJob, StagePayload } from "../schemas";
 import type { JobStore } from "./types";
 
 const TABLE = "jobs";
 const STAGE_TABLE = "job_stages";
+const EVENT_TABLE = "job_events";
 
-/** Supabase-backed store. Jobs and emitted stage payloads persist as jsonb.
- *  Requires the service-role key (server-side only). See supabase/migrations. */
+/** Supabase-backed store. Jobs, stage payloads, and live events persist as jsonb.
+ *  The event row id doubles as the monotonic seq. See supabase/migrations. */
 export class SupabaseJobStore implements JobStore {
   readonly kind = "supabase";
   private db: SupabaseClient;
@@ -63,5 +65,26 @@ export class SupabaseJobStore implements JobStore {
       .order("id", { ascending: true });
     if (error) throw new Error(`supabase getStages failed: ${error.message}`);
     return (data ?? []).map((row) => StagePayload.parse(row.payload));
+  }
+
+  async appendEvent(jobId: string, event: LiveEvent): Promise<LiveEvent> {
+    const { data, error } = await this.db
+      .from(EVENT_TABLE)
+      .insert({ job_id: jobId, type: event.type, payload: event })
+      .select("id")
+      .single();
+    if (error) throw new Error(`supabase appendEvent failed: ${error.message}`);
+    return { ...event, seq: data.id as number } as LiveEvent;
+  }
+
+  async getEvents(jobId: string, fromSeq = 0): Promise<LiveEvent[]> {
+    const { data, error } = await this.db
+      .from(EVENT_TABLE)
+      .select("id,payload")
+      .eq("job_id", jobId)
+      .gt("id", fromSeq)
+      .order("id", { ascending: true });
+    if (error) throw new Error(`supabase getEvents failed: ${error.message}`);
+    return (data ?? []).map((row) => LiveEvent.parse({ ...row.payload, seq: row.id }));
   }
 }
