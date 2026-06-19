@@ -9,6 +9,7 @@
     "dev": "tsx watch src/server.ts",
     "smoke": "tsx src/smoke.ts",
     "smoke:live": "tsx src/smoke-live.ts",
+    "live:client": "tsx src/live-client.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",

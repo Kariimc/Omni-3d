@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import type { AddressInfo } from "node:net";
 import { buildApp } from "./app";
+import { LiveSyncClient } from "./live/client";
+import { RecordingEngineBridge } from "./live/engine";
 import { MemoryJobStore } from "./store/memory";
 
 const JSON_HEADERS = { "content-type": "application/json" };
@@ -18,11 +20,6 @@ const createBody = {
   targets: { engine: "ue5", polyBudget: "hero", rigStandard: "ue5_sk_mannequin" },
 };
 
-interface AnyEvent {
-  type: string;
-  [k: string]: unknown;
-}
-
 async function main(): Promise<void> {
   const app = await buildApp(new MemoryJobStore());
   await app.listen({ port: 0, host: "127.0.0.1" });
@@ -37,46 +34,61 @@ async function main(): Promise<void> {
   assert.equal(created.statusCode, 201, "POST /pipeline -> 201");
   const id = created.json().jobId as string;
 
-  const events: AnyEvent[] = [];
-  const ws = new WebSocket(`ws://127.0.0.1:${port}/live?jobId=${id}`);
-  ws.addEventListener("message", (m: MessageEvent) => events.push(JSON.parse(String(m.data))));
+  // Drive the engine-side client + bridge exactly as a real UE5/Unity plugin would.
+  const bridge = new RecordingEngineBridge();
+  const seen = {
+    connected: false,
+    stages: 0,
+    eitl: undefined as { passed: boolean; repairs: number } | undefined,
+    push: false,
+    complete: undefined as { status: string } | undefined,
+    error: undefined as string | undefined,
+  };
 
-  // Wait until the server-side subscription is live (the `connected` ack arrived).
-  await new Promise<void>((resolve, reject) => {
-    ws.addEventListener("error", () => reject(new Error("ws connection error")));
-    const iv = setInterval(() => {
-      if (events.some((e) => e.type === "connected")) {
-        clearInterval(iv);
-        resolve();
-      }
-    }, 10);
+  const client = new LiveSyncClient(`ws://127.0.0.1:${port}`, id, {
+    onConnected: () => {
+      seen.connected = true;
+    },
+    onStage: () => {
+      seen.stages++;
+    },
+    onEitl: (e) => {
+      seen.eitl = { passed: e.passed, repairs: e.repairs };
+    },
+    onAssetPush: (e) => {
+      seen.push = true;
+      bridge.apply(e);
+    },
+    onComplete: (e) => {
+      seen.complete = { status: e.status };
+    },
+    onError: (m) => {
+      seen.error = m;
+    },
   });
-  assert.equal(events[0]?.type, "connected", "first event = connected");
 
-  // Drive the full pipeline; inject a defect at Loop C to exercise the repair path.
+  await client.connect();
+  assert.ok(seen.connected, "client received connected ack");
+
   for (let i = 0; i < 5; i++) {
     await app.inject({ method: "POST", url: `/jobs/${id}/advance` });
   }
   await app.inject({ method: "POST", url: `/jobs/${id}/advance?defect=vertex_tear` });
 
-  for (let i = 0; i < 50 && !events.some((e) => e.type === "pipeline.complete"); i++) {
-    await delay(20);
-  }
+  for (let i = 0; i < 50 && !seen.complete; i++) await delay(20);
 
-  const stages = events.filter((e) => e.type === "stage.completed");
-  const eitl = events.find((e) => e.type === "eitl.result");
-  const push = events.find((e) => e.type === "asset.push");
-  const complete = events.find((e) => e.type === "pipeline.complete");
+  assert.equal(seen.error, undefined, "no malformed events");
+  assert.equal(seen.stages, 6, "client saw 6 stage events");
+  assert.ok(seen.eitl?.passed === true && seen.eitl.repairs >= 1, "EITL repaired and passed");
+  assert.ok(seen.push, "client received asset.push");
+  assert.equal(seen.complete?.status, "passed", "pipeline complete = passed");
+  assert.ok(bridge.actions.some((a) => a.kind === "place_mesh"), "engine placed the mesh");
+  assert.ok(bridge.actions.length >= 5, "engine applied the full action set");
 
-  assert.equal(stages.length, 6, "6 stage.completed events streamed");
-  assert.ok(eitl && eitl.passed === true && (eitl.repairs as number) >= 1, "eitl.result passed after repair");
-  assert.ok(push && push.engine === "ue5", "asset.push streamed");
-  assert.ok(complete && complete.status === "passed", "pipeline.complete = passed");
-
-  ws.close();
+  client.close();
   await app.close();
   console.log(
-    `LIVE SMOKE PASS — ${events.length} events (${stages.length} stages, eitl repairs=${eitl?.repairs}, asset.push→${push?.engine})`,
+    `LIVE SMOKE PASS — client: ${seen.stages} stages, EITL repairs=${seen.eitl?.repairs}, engine applied [${bridge.actions.map((a) => a.kind).join(", ")}]`,
   );
 }
 

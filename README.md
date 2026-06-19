@@ -28,7 +28,8 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
-| `src/live/*` | Live-Sync event protocol + pub/sub bus (WebSocket bridge) |
+| `src/live/*` | Live-Sync protocol, pub/sub bus, engine-side client + UE5/Unity bridge |
+| `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
 ## API
@@ -70,6 +71,16 @@ events on that channel:
 
 The contract is a single discriminated union (`src/live/events.ts`), also exported to
 `schemas/json/live-event.schema.json` for the engine-side client.
+
+### Engine-side client
+`LiveSyncClient` (`src/live/client.ts`) connects, validates each frame against `LiveEvent`,
+and dispatches to typed handlers. On `asset.push` an `EngineBridge` runs the concrete engine
+operations — for UE5: create Material Instance from the master, assign BaseColor/Normal/ORM/Emissive,
+import the SkeletalMesh at 1 unit = 1 cm, bind the AnimBlueprint, open Live Link (Unity has the
+URP/Mecanim equivalents). Watch any running job live:
+```
+npm run live:client -- <jobId> --url=ws://127.0.0.1:8787
+```
 
 ## Payload data flow
 ```
