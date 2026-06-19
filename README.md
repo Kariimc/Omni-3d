@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
-| `src/loops/providers/*` | Real stage impls: variance-of-Laplacian frame sampler, meshoptimizer retopology |
+| `src/loops/providers/*` | Real stage impls: VoL frame sampler, meshoptimizer retopology, mesh-integrity EITL |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
@@ -77,6 +77,12 @@ The second real provider is `realRetopology` (Loop A3) — actual triangle **dec
 `meshoptimizer` (WASM)** to the job's poly budget, reporting real input/achieved counts. (Quad
 cross-field, UV seams, and PBR remain a separate pass.) `npm run smoke:retopo` decimates an ~80k-tri
 sphere to the budget and checks the counts + the runner DI seam at A3.
+
+The third is `realEitl` (Loop C, `mesh-check.ts`) — real **watertight/manifold analysis** (counts
+faces per edge to find boundary/non-manifold edges + degenerate faces), feeding the measured defect
+ratios into the shared `runEitlGate` (one EITL implementation for synthetic and real). A real hole
+drives `L_manifold` over threshold and triggers the micro-repair back-edge. `npm run smoke:mesh`
+checks closed/holed/non-manifold detection and the runner DI seam at C.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed

@@ -205,51 +205,62 @@ export function genAnimation(job: PipelineJob): StagePayload {
 
 // ---- Loop C — EITL gate + micro-repair back-edge --------------------------
 
-const W = { w1: 0.4, w2: 0.35, w3: 0.25 } as const;
-const THRESHOLD = 0.05;
-const MAX_REPAIR = 3;
-const REPAIR_FACTOR = 0.1; // localized inpaint removes ~90% of the defect at the failure site
+export const EITL = { w1: 0.4, w2: 0.35, w3: 0.25, threshold: 0.05, maxRepair: 3, factor: 0.1 } as const;
 
-interface Terms {
+export interface EitlTerms {
   L_manifold: number;
   L_intersections: number;
   L_vertex_tear: number;
 }
 
-const score = (t: Terms): number =>
-  W.w1 * t.L_manifold + W.w2 * t.L_intersections + W.w3 * t.L_vertex_tear;
+const score = (t: EitlTerms): number =>
+  EITL.w1 * t.L_manifold + EITL.w2 * t.L_intersections + EITL.w3 * t.L_vertex_tear;
 
-const worstTerm = (t: Terms): keyof Terms => {
-  const c: Record<keyof Terms, number> = {
-    L_manifold: W.w1 * t.L_manifold,
-    L_intersections: W.w2 * t.L_intersections,
-    L_vertex_tear: W.w3 * t.L_vertex_tear,
+const worstTerm = (t: EitlTerms): keyof EitlTerms => {
+  const c: Record<keyof EitlTerms, number> = {
+    L_manifold: EITL.w1 * t.L_manifold,
+    L_intersections: EITL.w2 * t.L_intersections,
+    L_vertex_tear: EITL.w3 * t.L_vertex_tear,
   };
-  return (Object.keys(c) as (keyof Terms)[]).reduce((a, b) => (c[b] > c[a] ? b : a));
+  return (Object.keys(c) as (keyof EitlTerms)[]).reduce((a, b) => (c[b] > c[a] ? b : a));
 };
 
-export function genEitl(job: PipelineJob, opts: AdvanceOpts = {}): StagePayload {
-  const engine = job.targets.engine === "both" ? "ue5" : job.targets.engine;
-  const terms: Terms = { L_manifold: 0.0, L_intersections: 0.02, L_vertex_tear: 0.0 };
-  if (opts.defect === "manifold") terms.L_manifold = 0.3;
-  if (opts.defect === "intersections") terms.L_intersections = 0.3;
-  if (opts.defect === "vertex_tear") terms.L_vertex_tear = 0.3;
+export interface EitlGateResult {
+  terms: EitlTerms;
+  score: number;
+  passed: boolean;
+  failureSites: { term: keyof EitlTerms; before: number }[];
+  rerunPhases: string[];
+  inpaintPasses: number;
+}
 
-  const failureSites: { term: keyof Terms; before: number }[] = [];
+/** The EITL closed-loop gate: while E > threshold, mask the worst failure site and
+ *  re-run Phase 2/3 locally (modeled as shrinking that term). Single source of truth
+ *  shared by the synthetic generator and the real mesh-integrity provider. */
+export function runEitlGate(initial: EitlTerms): EitlGateResult {
+  const terms: EitlTerms = { ...initial };
+  const failureSites: { term: keyof EitlTerms; before: number }[] = [];
   const rerunPhases: string[] = [];
   let passes = 0;
   let s = score(terms);
-
-  // Back-edge: while over threshold, mask the worst site and re-run Phase 2/3 locally.
-  while (s > THRESHOLD && passes < MAX_REPAIR) {
+  while (s > EITL.threshold && passes < EITL.maxRepair) {
     passes++;
     const worst = worstTerm(terms);
     failureSites.push({ term: worst, before: r6(terms[worst]) });
-    terms[worst] = r6(terms[worst] * REPAIR_FACTOR);
+    terms[worst] = r6(terms[worst] * EITL.factor);
     rerunPhases.push(worst === "L_vertex_tear" ? "phase3_rig" : "phase2_topology");
     s = score(terms);
   }
-  const passed = s <= THRESHOLD;
+  return { terms, score: r6(s), passed: s <= EITL.threshold, failureSites, rerunPhases, inpaintPasses: passes };
+}
+
+export function genEitl(job: PipelineJob, opts: AdvanceOpts = {}): StagePayload {
+  const engine = job.targets.engine === "both" ? "ue5" : job.targets.engine;
+  const initial: EitlTerms = { L_manifold: 0.0, L_intersections: 0.02, L_vertex_tear: 0.0 };
+  if (opts.defect === "manifold") initial.L_manifold = 0.3;
+  if (opts.defect === "intersections") initial.L_intersections = 0.3;
+  if (opts.defect === "vertex_tear") initial.L_vertex_tear = 0.3;
+  const g = runEitlGate(initial);
 
   return EitlValidation.parse({
     $omni3d: "loopC.eitl.validation/v1",
@@ -258,20 +269,20 @@ export function genEitl(job: PipelineJob, opts: AdvanceOpts = {}): StagePayload 
     engineRules: { engine, headless: true, rulesetVersion: engine === "ue5" ? "5.4" : "2022.3" },
     costFunction: {
       formula: "w1*L_manifold + w2*L_intersections + w3*L_vertex_tear",
-      weights: { w1: W.w1, w2: W.w2, w3: W.w3 },
-      terms: { L_manifold: terms.L_manifold, L_intersections: terms.L_intersections, L_vertex_tear: terms.L_vertex_tear },
-      score: r6(s),
-      threshold: THRESHOLD,
-      passed,
+      weights: { w1: EITL.w1, w2: EITL.w2, w3: EITL.w3 },
+      terms: { L_manifold: g.terms.L_manifold, L_intersections: g.terms.L_intersections, L_vertex_tear: g.terms.L_vertex_tear },
+      score: g.score,
+      threshold: EITL.threshold,
+      passed: g.passed,
     },
     checks: {
-      watertight: terms.L_manifold <= THRESHOLD,
+      watertight: g.terms.L_manifold <= EITL.threshold,
       normalsAligned: true,
       delit: true,
-      vertexTearOnPlayback: terms.L_vertex_tear > THRESHOLD,
+      vertexTearOnPlayback: g.terms.L_vertex_tear > EITL.threshold,
       uvOverlapSecondary: false,
     },
-    microRepair: { triggered: passes > 0, failureSites, inpaintPasses: passes, rerunPhases },
+    microRepair: { triggered: g.inpaintPasses > 0, failureSites: g.failureSites, inpaintPasses: g.inpaintPasses, rerunPhases: g.rerunPhases },
     export: {
       ue5: { materialInstances: true, ormPacked: true, emissiveScalarParam: 2.5, unitScaleCm: job.targets.unitScale === "cm" },
       unity: { pipeline: "urp", lightmapUV: true, noVertexTearMecanim: true },
@@ -280,8 +291,8 @@ export function genEitl(job: PipelineJob, opts: AdvanceOpts = {}): StagePayload 
       bridge: "websocket",
       endpoint: "ws://127.0.0.1:8788/omni3d",
       engine,
-      pushStatus: passed ? "streaming" : "halted",
-      instantiatedMaterials: passed,
+      pushStatus: g.passed ? "streaming" : "halted",
+      instantiatedMaterials: g.passed,
     },
   });
 }
