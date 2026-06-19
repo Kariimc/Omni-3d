@@ -28,7 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
-| `src/loops/providers/*` | Real stage implementations (variance-of-Laplacian frame sampler) |
+| `src/loops/providers/*` | Real stage impls: variance-of-Laplacian frame sampler, meshoptimizer retopology |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
@@ -72,6 +72,11 @@ takes a `{ stageKey: provider }` map (providers may be async). The first real on
 threshold, then emits the canonical `FrameSampler` payload. The CV core is pure (testable on raw
 pixel arrays); SfM camera poses remain synthetic until COLMAP is wired. `npm run smoke:sampler`
 verifies the metric, real-PNG blur rejection, and the runner DI seam.
+
+The second real provider is `realRetopology` (Loop A3) — actual triangle **decimation via
+`meshoptimizer` (WASM)** to the job's poly budget, reporting real input/achieved counts. (Quad
+cross-field, UV seams, and PBR remain a separate pass.) `npm run smoke:retopo` decimates an ~80k-tri
+sphere to the budget and checks the counts + the runner DI seam at A3.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
