@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { ZodTypeAny } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { SCHEMAS } from "./schemas";
+import { LiveEvent } from "./live/events";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const OUT = join(here, "..", "schemas", "json");
@@ -22,4 +23,12 @@ for (const [id, schema] of Object.entries(registry)) {
   console.log(`  wrote schemas/json/${fileFor(id)}`);
   count++;
 }
+const liveOut = join(OUT, "live-event.schema.json");
+writeFileSync(
+  liveOut,
+  JSON.stringify(zodToJsonSchema(LiveEvent, { name: "LiveEvent", $refStrategy: "none" }), null, 2) + "\n",
+);
+console.log("  wrote schemas/json/live-event.schema.json");
+count++;
+
 console.log(`\n${count} JSON Schema file(s) exported.`);

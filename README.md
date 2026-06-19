@@ -28,6 +28,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
 | `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
+| `src/live/*` | Live-Sync event protocol + pub/sub bus (WebSocket bridge) |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
 ## API
@@ -41,6 +42,7 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `POST` | `/jobs/:id/advance` | run the next stage; `?defect=` injects an EITL failure to test repair |
 | `GET` | `/jobs/:id/stages` | list the stage payloads emitted by the runner |
 | `POST` | `/jobs/:id/stages` | validate an externally produced stage payload (discriminated union) |
+| `WS` | `/live?jobId=` | stream runner events to a UE5/Unity client (Feature #10) |
 
 ```
 npm start              # boot the API (PORT=8787, in-memory store by default)
@@ -56,6 +58,18 @@ status/progress. Loop C runs the EITL gate `E = w1·manifold + w2·intersections
 if `E > T` it masks the worst failure site and re-runs Phase 2/3 locally (the micro-repair
 back-edge), recording each pass in `microRepair`. Add `?defect=vertex_tear|intersections|manifold`
 to force a failure and watch the repair loop recover.
+
+## Live-Sync bridge (Feature #10)
+Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed
+events on that channel:
+- `connected` — subscription ack
+- `stage.completed` — per stage: `{ stage, done, status, loops }`
+- `eitl.result` — Loop C gate: `{ passed, score, threshold, repairs, rerunPhases }`
+- `asset.push` — on pass: `{ engine, bundle, endpoint }` (instantiate materials, push the mesh)
+- `pipeline.complete` — terminal `{ status }`
+
+The contract is a single discriminated union (`src/live/events.ts`), also exported to
+`schemas/json/live-event.schema.json` for the engine-side client.
 
 ## Payload data flow
 ```

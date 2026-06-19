@@ -35,7 +35,7 @@ async function createJob(app: FastifyInstance): Promise<PipelineJob> {
 }
 
 async function main(): Promise<void> {
-  const app = buildApp(new MemoryJobStore());
+  const app = await buildApp(new MemoryJobStore());
 
   // --- basics ---
   const health = await app.inject({ method: "GET", url: "/health" });

@@ -8,12 +8,14 @@
     "start": "tsx src/server.ts",
     "dev": "tsx watch src/server.ts",
     "smoke": "tsx src/smoke.ts",
+    "smoke:live": "tsx src/smoke-live.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke"
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live"
   },
   "dependencies": {
+    "@fastify/websocket": "^11.0.1",
     "@supabase/supabase-js": "^2.45.4",
     "fastify": "^5.1.0",
     "zod": "^3.23.8",
