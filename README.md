@@ -31,11 +31,13 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/loops/providers/*` | Real stage implementations (variance-of-Laplacian frame sampler) |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
+| `public/*` | Live web dashboard (3-phase workspace) served at `GET /` |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
 
 ## API
 | Method | Route | Purpose |
 |--------|-------|---------|
+| `GET` | `/` | live web dashboard (3-phase workspace, consumes `/live`) |
 | `GET` | `/health` | liveness + active store + schema count |
 | `GET` | `/schemas` | list payload contracts the API validates against |
 | `POST` | `/pipeline` | validate request → build job envelope → persist (201) |

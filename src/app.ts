@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import fastifyWebsocket from "@fastify/websocket";
 import Fastify, { type FastifyInstance } from "fastify";
 import { InMemoryEventBus, type EventBus } from "./live/bus";
@@ -8,6 +11,13 @@ import { CreatePipelineRequest, buildJobEnvelope } from "./schemas/request";
 import type { JobStore } from "./store";
 
 const DEFECTS = ["manifold", "intersections", "vertex_tear"] as const;
+
+const PUBLIC_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "public");
+const DASHBOARD = {
+  html: readFileSync(join(PUBLIC_DIR, "index.html"), "utf8"),
+  css: readFileSync(join(PUBLIC_DIR, "dashboard.css"), "utf8"),
+  js: readFileSync(join(PUBLIC_DIR, "dashboard.js"), "utf8"),
+};
 
 /** Subset of the ws.WebSocket surface we use — tolerant of @fastify/websocket
  *  version differences (raw WebSocket vs SocketStream). */
@@ -32,6 +42,13 @@ export async function buildApp(
   }));
 
   app.get("/schemas", async () => Object.keys(SCHEMAS));
+
+  // Live web dashboard (3-phase workspace) — self-contained, same-origin.
+  app.get("/", async (_req, reply) => reply.type("text/html").send(DASHBOARD.html));
+  app.get("/dashboard.css", async (_req, reply) => reply.type("text/css").send(DASHBOARD.css));
+  app.get("/dashboard.js", async (_req, reply) =>
+    reply.type("application/javascript").send(DASHBOARD.js),
+  );
 
   // Create a job: validate request -> build schema-valid envelope -> persist.
   app.post("/pipeline", async (req, reply) => {

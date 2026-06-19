@@ -41,6 +41,17 @@ async function main(): Promise<void> {
   const health = await app.inject({ method: "GET", url: "/health" });
   assert.equal(health.statusCode, 200, "health -> 200");
 
+  // Dashboard static assets are served.
+  const home = await app.inject({ method: "GET", url: "/" });
+  assert.equal(home.statusCode, 200, "GET / -> 200");
+  assert.ok(home.headers["content-type"]?.toString().includes("text/html"), "/ is html");
+  assert.ok(home.body.includes("OMNI"), "/ renders the dashboard");
+  const dashJs = await app.inject({ method: "GET", url: "/dashboard.js" });
+  assert.equal(dashJs.statusCode, 200, "GET /dashboard.js -> 200");
+  assert.ok(dashJs.body.includes("WebSocket"), "dashboard.js consumes /live");
+  const dashCss = await app.inject({ method: "GET", url: "/dashboard.css" });
+  assert.equal(dashCss.statusCode, 200, "GET /dashboard.css -> 200");
+
   const job = await createJob(app);
   const id = job.jobId;
   assert.equal(job.runner?.cursor, -1, "new job runner cursor = -1");

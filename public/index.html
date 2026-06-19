@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Omni3D — Live Workspace</title>
+    <link rel="stylesheet" href="/dashboard.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">OMNI<span>3D</span></div>
+      <div class="controls">
+        <input id="prompt" placeholder="prompt" value="weathered bronze knight statue, glowing rune gems" />
+        <select id="engine" title="engine">
+          <option value="ue5">UE5</option>
+          <option value="unity">Unity</option>
+          <option value="both">Both</option>
+        </select>
+        <select id="budget" title="poly budget">
+          <option value="mobile_xr">Mobile/XR &lt;5k</option>
+          <option value="hero" selected>Hero 20–50k</option>
+          <option value="nanite">Nanite</option>
+        </select>
+        <select id="rig" title="rig standard">
+          <option value="ue5_sk_mannequin">UE5 SK_Mannequin</option>
+          <option value="unity_humanoid_mecanim">Unity Humanoid</option>
+        </select>
+        <label class="chk"><input type="checkbox" id="defect" /> inject EITL defect</label>
+        <button id="create">New job</button>
+        <button id="advance" disabled>Advance ▷</button>
+        <button id="run" disabled>Run to end ⏩</button>
+      </div>
+      <div class="status"><span id="dot" class="dot"></span><span id="jobid">no job</span></div>
+    </header>
+
+    <main>
+      <section class="phases">
+        <div class="phase" data-loop="A_structural">
+          <h2>① Structure <small>Loop A</small></h2>
+          <div class="stage" data-role="stage">—</div>
+          <div class="bar"><div class="fill" data-role="fill"></div></div>
+          <div class="meta"><span data-role="status">queued</span><span data-role="pct">0%</span></div>
+          <ul class="substeps"><li>A1 frame sampler · A2 voxel draft · A3 retopology</li></ul>
+        </div>
+        <div class="phase" data-loop="B_rigging">
+          <h2>② Rig &amp; Animate <small>Loop B</small></h2>
+          <div class="stage" data-role="stage">—</div>
+          <div class="bar"><div class="fill" data-role="fill"></div></div>
+          <div class="meta"><span data-role="status">queued</span><span data-role="pct">0%</span></div>
+          <ul class="substeps"><li>B1 rigging + skin weights · B2 mocap retarget</li></ul>
+        </div>
+        <div class="phase" data-loop="C_eitl">
+          <h2>③ Compile &amp; Sync <small>Loop C</small></h2>
+          <div class="stage" data-role="stage">—</div>
+          <div class="bar"><div class="fill" data-role="fill"></div></div>
+          <div class="meta"><span data-role="status">queued</span><span data-role="pct">0%</span></div>
+          <ul class="substeps"><li>EITL gate · micro-repair · live-sync push</li></ul>
+        </div>
+      </section>
+
+      <aside class="panels">
+        <div class="panel" id="eitl">
+          <h3>EITL gate</h3>
+          <div class="formula">E = w₁·manifold + w₂·intersections + w₃·vertex_tear</div>
+          <div data-role="body">—</div>
+        </div>
+        <div class="panel" id="engine-panel">
+          <h3>Live-Sync push</h3>
+          <div data-role="body">—</div>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      <div class="loghead">live events</div>
+      <ol id="log"></ol>
+    </footer>
+
+    <script src="/dashboard.js"></script>
+  </body>
+</html>
