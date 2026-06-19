@@ -10,16 +10,18 @@
     "smoke": "tsx src/smoke.ts",
     "smoke:live": "tsx src/smoke-live.ts",
     "smoke:bus": "tsx src/smoke-bus.ts",
+    "smoke:sampler": "tsx src/smoke-sampler.ts",
     "live:client": "tsx src/live-client.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus"
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler"
   },
   "dependencies": {
     "@fastify/websocket": "^11.0.1",
     "@supabase/supabase-js": "^2.45.4",
     "fastify": "^5.1.0",
+    "jimp": "^1.6.1",
     "pg": "^8.13.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.2"

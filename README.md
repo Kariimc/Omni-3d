@@ -27,7 +27,8 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `schemas/json/*.schema.json` | Exported JSON Schema contracts for the UE5/Unity bridges |
 | `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
 | `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
-| `src/loops/*` | Stage generators + the A→B→C runner with the EITL repair gate |
+| `src/loops/*` | Synthetic stage generators + the A→B→C runner (injectable providers) |
+| `src/loops/providers/*` | Real stage implementations (variance-of-Laplacian frame sampler) |
 | `src/live/*` | Live-Sync protocol, pub/sub bus (memory · Postgres · Supabase Realtime), client + bridge |
 | `src/live-client.ts` | CLI that watches a job over `/live` and runs the engine actions |
 | `supabase/migrations/*` | `jobs` + `job_stages` table DDL |
@@ -60,6 +61,15 @@ status/progress. Loop C runs the EITL gate `E = w1·manifold + w2·intersections
 if `E > T` it masks the worst failure site and re-runs Phase 2/3 locally (the micro-repair
 back-edge), recording each pass in `microRepair`. Add `?defect=vertex_tear|intersections|manifold`
 to force a failure and watch the repair loop recover.
+
+### Real stage providers
+Each stage generator is deterministic by default but swappable: `advanceJob(job, opts, overrides)`
+takes a `{ stageKey: provider }` map (providers may be async). The first real one is
+`realFrameSampler` (`src/loops/providers/`) — it decodes frames with jimp and scores each by the
+**variance of the Laplacian** (the standard blur metric), rejecting frames below a relative
+threshold, then emits the canonical `FrameSampler` payload. The CV core is pure (testable on raw
+pixel arrays); SfM camera poses remain synthetic until COLMAP is wired. `npm run smoke:sampler`
+verifies the metric, real-PNG blur rejection, and the runner DI seam.
 
 ## Live-Sync bridge (Feature #10)
 Connect a UE5/Unity client to `ws://host/live?jobId=<id>`; every `advance` then streams typed

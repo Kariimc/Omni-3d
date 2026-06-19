@@ -65,7 +65,7 @@ export async function buildApp(
 
     const { defect } = req.query as { defect?: string };
     const chosen = DEFECTS.find((d) => d === defect);
-    const result = advanceJob(job, chosen ? { defect: chosen } : {});
+    const result = await advanceJob(job, chosen ? { defect: chosen } : {});
     if (result.kind === "complete") {
       return reply.code(409).send({ error: "pipeline_complete", id });
     }

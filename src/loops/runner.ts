@@ -9,12 +9,14 @@ import {
   genVoxelDraft,
 } from "./generators";
 
+export type StageGen = (job: PipelineJob, opts: AdvanceOpts) => StagePayload | Promise<StagePayload>;
+
 interface Step {
   key: string;
   tag: string;
   stage: string;
   loop: "A_structural" | "B_rigging" | "C_eitl";
-  gen: (job: PipelineJob, opts: AdvanceOpts) => StagePayload;
+  gen: StageGen;
 }
 
 /** Canonical execution plan A1 -> A2 -> A3 -> B1 -> B2 -> C. */
@@ -41,14 +43,19 @@ export type AdvanceResult =
 
 /** Advance a job by exactly one stage: generate the payload, update loop state,
  *  and (for Loop C) record the EITL gate outcome + micro-repair count. */
-export function advanceJob(job: PipelineJob, opts: AdvanceOpts = {}): AdvanceResult {
+export async function advanceJob(
+  job: PipelineJob,
+  opts: AdvanceOpts = {},
+  overrides: Partial<Record<string, StageGen>> = {},
+): Promise<AdvanceResult> {
   const cursor = job.runner?.cursor ?? -1;
   const next = cursor + 1;
   const step = STAGE_PLAN[next];
   if (!step) return { kind: "complete" };
 
   const updated = structuredClone(job);
-  const emitted = step.gen(updated, opts);
+  const gen = overrides[step.key] ?? step.gen;
+  const emitted = await gen(updated, opts);
 
   let eitlPassed = true;
   let repairs = 0;
