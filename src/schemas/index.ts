@@ -9,6 +9,7 @@ export { PipelineJob } from "./job";
 export { FrameSampler, VoxelDraft, Retopology } from "./loopA";
 export { RiggingSkinWeights, AnimationRetarget } from "./loopB";
 export { EitlValidation } from "./loopC";
+export { CreatePipelineRequest, buildJobEnvelope, newJobId } from "./request";
 
 /** Discriminated union over the `$omni3d` tag — routes any payload to its schema. */
 export const OmniPayload = z.discriminatedUnion("$omni3d", [

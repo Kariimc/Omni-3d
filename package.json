@@ -3,14 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Video-native 3D production studio — closed-loop payload schemas (UE5 & Unity native).",
+  "description": "Video-native 3D production studio — closed-loop payload schemas + API (UE5 & Unity native).",
   "scripts": {
+    "start": "tsx src/server.ts",
+    "dev": "tsx watch src/server.ts",
+    "smoke": "tsx src/smoke.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate"
+    "check": "npm run typecheck && npm run validate && npm run smoke"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "fastify": "^5.1.0",
     "zod": "^3.23.8",
     "zod-to-json-schema": "^3.23.2"
   },

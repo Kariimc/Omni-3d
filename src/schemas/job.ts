@@ -11,7 +11,7 @@ import {
   VideoContainer,
 } from "./common";
 
-const VideoInput = z
+export const VideoInput = z
   .object({
     uri: AssetUri,
     container: VideoContainer,
@@ -21,7 +21,7 @@ const VideoInput = z
   })
   .strict();
 
-const MotionVideoInput = z
+export const MotionVideoInput = z
   .object({
     uri: AssetUri,
     container: VideoContainer,
@@ -30,11 +30,57 @@ const MotionVideoInput = z
   })
   .strict();
 
-const LoopState = z
+export const Targets = z
+  .object({
+    engine: Engine,
+    unitScale: UnitScale,
+    polyBudget: PolyBudgetPreset,
+    humanoid: z.boolean(),
+    rigStandard: RigStandard,
+  })
+  .strict();
+
+export const Features = z
+  .object({
+    voxelDraftTweaker: z.boolean(),
+    asymmetricalFusion: z.boolean(),
+    polyBudgetRetopo: z.boolean(),
+    uvSeamPainter: z.boolean(),
+    pbrDelight: z.boolean(),
+    watertightScanner: z.boolean(),
+    kitbash: z.boolean(),
+    emissiveMapping: z.boolean(),
+    styleAnchors: z.boolean(),
+    liveSync: z.boolean(),
+    autoRigMocap: z.boolean(),
+  })
+  .strict();
+
+export const LoopState = z
   .object({
     stage: z.string(),
     progress: z.number().min(0).max(1),
     status: LoopStatus,
+  })
+  .strict();
+
+export const Loops = z
+  .object({
+    A_structural: LoopState,
+    B_rigging: LoopState,
+    C_eitl: LoopState,
+  })
+  .strict();
+
+export const Artifacts = z
+  .object({
+    voxelDraft: AssetUri,
+    highFiMesh: AssetUri,
+    retopoMesh: AssetUri,
+    textures: AssetUri,
+    riggedMesh: AssetUri,
+    animation: AssetUri,
+    engineBundle: AssetUri,
   })
   .strict();
 
@@ -51,51 +97,13 @@ export const PipelineJob = z
         text: z.string(),
         images: z.array(AssetUri),
         video: VideoInput,
-        motionVideo: MotionVideoInput,
+        motionVideo: MotionVideoInput.optional(),
       })
       .strict(),
-    targets: z
-      .object({
-        engine: Engine,
-        unitScale: UnitScale,
-        polyBudget: PolyBudgetPreset,
-        humanoid: z.boolean(),
-        rigStandard: RigStandard,
-      })
-      .strict(),
-    features: z
-      .object({
-        voxelDraftTweaker: z.boolean(),
-        asymmetricalFusion: z.boolean(),
-        polyBudgetRetopo: z.boolean(),
-        uvSeamPainter: z.boolean(),
-        pbrDelight: z.boolean(),
-        watertightScanner: z.boolean(),
-        kitbash: z.boolean(),
-        emissiveMapping: z.boolean(),
-        styleAnchors: z.boolean(),
-        liveSync: z.boolean(),
-        autoRigMocap: z.boolean(),
-      })
-      .strict(),
-    loops: z
-      .object({
-        A_structural: LoopState,
-        B_rigging: LoopState,
-        C_eitl: LoopState,
-      })
-      .strict(),
-    artifacts: z
-      .object({
-        voxelDraft: AssetUri,
-        highFiMesh: AssetUri,
-        retopoMesh: AssetUri,
-        textures: AssetUri,
-        riggedMesh: AssetUri,
-        animation: AssetUri,
-        engineBundle: AssetUri,
-      })
-      .strict(),
+    targets: Targets,
+    features: Features,
+    loops: Loops,
+    artifacts: Artifacts,
   })
   .strict();
 

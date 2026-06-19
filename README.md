@@ -25,6 +25,26 @@ own mistakes, and live-syncs the finished asset straight into Unreal or Unity.
 | `src/validate.ts` | Validates every payload + verifies the closed-loop `nextStage` chain |
 | `src/export-json-schema.ts` | Emits `schemas/json/*` from the Zod schemas |
 | `schemas/json/*.schema.json` | Exported JSON Schema contracts for the UE5/Unity bridges |
+| `src/app.ts` · `src/server.ts` | Fastify API (schema-validated) |
+| `src/store/*` | Pluggable job store: in-memory default, Supabase adapter |
+| `supabase/migrations/*` | `jobs` table DDL |
+
+## API
+| Method | Route | Purpose |
+|--------|-------|---------|
+| `GET` | `/health` | liveness + active store + schema count |
+| `GET` | `/schemas` | list payload contracts the API validates against |
+| `POST` | `/pipeline` | validate request → build job envelope → persist (201) |
+| `GET` | `/jobs` | recent jobs (`?limit=`) |
+| `GET` | `/jobs/:id` | fetch a job envelope (404 if absent) |
+| `POST` | `/jobs/:id/stages` | validate any Loop A/B/C payload via the discriminated union |
+
+```
+npm start              # boot the API (PORT=8787, in-memory store by default)
+npm run smoke          # inject-based route tests, no network/credentials needed
+```
+Set `SUPABASE_URL` + `SUPABASE_SERVICE_KEY` (see `.env.example`) to persist jobs in Supabase;
+apply `supabase/migrations/0001_init.sql` first.
 
 ## Payload data flow
 ```
