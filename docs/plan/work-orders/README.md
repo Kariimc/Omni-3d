@@ -1,0 +1,44 @@
+# Work orders — how to build the Higgsfield-competitor plan
+
+Each `WO-*.md` file is a **self-contained build instruction** for one agent. Strategy and evidence live in [../MASTER_PLAN.md](../MASTER_PLAN.md) and [../RESEARCH_HIGGSFIELD.md](../RESEARCH_HIGGSFIELD.md) — you don't need them to build, but read the plan's "Rules for builder agents" section before starting.
+
+## Dependency graph
+
+```
+Phase 0 (serial-ish):   WO-01 ──► WO-02 ─────────────┐
+                        WO-01 ──► WO-03 ─────────────┤
+Phase 1 (parallel):     WO-03 ──► WO-04, WO-05, WO-06│
+Phase 2 (parallel):     WO-02+06 ► WO-07 ──► WO-08 ──► WO-09
+Phase 3 (parallel):     WO-10 (07,09) · WO-11 (08,09,10) · WO-12 (02,08)
+                        WO-13 (07,08,12) · WO-14 (05,06)
+```
+
+Critical path: **WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11**.
+
+## Per-WO protocol
+
+1. Branch `wo/NN-slug` off `main`.
+2. Read the WO fully, then every repo file it names, before writing code.
+3. Build to spec; follow existing repo patterns (Zod schema → provider → smoke script → wire into `npm run check`).
+4. Run the WO's acceptance commands; paste real output in the PR description.
+5. Small single-purpose commits; open a **draft PR**; do not merge to main.
+6. If the repo has drifted from a WO's assumptions, update the WO file in the same PR and note it.
+
+## Index
+
+| WO | Title | Phase |
+|----|-------|-------|
+| [WO-01](./WO-01-real-file-io.md) | Real file I/O — `.glb` on disk | 0 |
+| [WO-02](./WO-02-engine-bridge.md) | Python engine ↔ TS bridge (True Unlimited local tier) | 0 |
+| [WO-03](./WO-03-job-queue.md) | Durable queue + SSE progress + refund-on-failure | 0 |
+| [WO-04](./WO-04-web-workspace.md) | Web workspace + 3D viewer | 1 |
+| [WO-05](./WO-05-auth-projects.md) | Auth + projects (local mode stays account-free) | 1 |
+| [WO-06](./WO-06-cost-meter.md) | Cost estimate + live meter + budget cap | 1 |
+| [WO-07](./WO-07-model-gateway.md) | Multi-model gateway (fal/Replicate + local) | 2 |
+| [WO-08](./WO-08-camera-presets.md) | Camera-move preset library (real 3D paths) | 2 |
+| [WO-09](./WO-09-character-anchor.md) | Character anchor — zero-drift consistency | 2 |
+| [WO-10](./WO-10-audio-lipsync.md) | Native audio + bone-driven lipsync | 3 |
+| [WO-11](./WO-11-timeline-editor.md) | Scene-graph timeline, multi-shot sequences | 3 |
+| [WO-12](./WO-12-4k-output.md) | 4K output, upscaling included | 3 |
+| [WO-13](./WO-13-pro-export-api.md) | Public API all tiers, batch, ProRes/alpha, 3D export | 3 |
+| [WO-14](./WO-14-honest-billing.md) | Honest billing + TRUST.md policy gates | 3 |
