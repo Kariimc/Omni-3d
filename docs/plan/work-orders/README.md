@@ -17,12 +17,14 @@ Critical path: **WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11**.
 
 ## Per-WO protocol
 
-1. Branch `wo/NN-slug` off `main`.
+0. **Read [../HANDOFF.md](../HANDOFF.md) first** — verified baseline, repo contracts, integration table, gotchas. Then check [../BUILD_LEDGER.md](../BUILD_LEDGER.md) for anything that changed since.
+1. Branch `wo/NN-slug` off `main`. Append a `STARTED` entry to the ledger and flip your row on its status board.
 2. Read the WO fully, then every repo file it names, before writing code.
-3. Build to spec; follow existing repo patterns (Zod schema → provider → smoke script → wire into `npm run check`).
+3. Build to spec; follow existing repo patterns (Zod schema → provider → smoke script → wire into `npm run check`). Contracts owned by other WOs (HANDOFF §9): code against their spec, don't fork them.
 4. Run the WO's acceptance commands; paste real output in the PR description.
-5. Small single-purpose commits; open a **draft PR**; do not merge to main.
-6. If the repo has drifted from a WO's assumptions, update the WO file in the same PR and note it.
+5. Small single-purpose commits; open a **draft PR**; do not merge to main. Never end a session with an un-pushed branch — push WIP + a ledger note saying exactly where you stopped.
+6. If the repo has drifted from a WO's assumptions, update the WO file in the same PR and note it in the ledger.
+7. On finish: ledger entry (`LANDED`/`IN-REVIEW`) with discoveries, update `PROGRESS.md` next action.
 
 ## Index
 

@@ -1,7 +1,8 @@
 # PROGRESS
 
 ## Current focus
-Higgsfield-competitor build plan is written and ready for execution by builder agents.
+Higgsfield-competitor build plan + builder handoff are written and ready for execution.
+**Builder agents start here: [docs/plan/HANDOFF.md](docs/plan/HANDOFF.md)** (verified baseline, contracts, gotchas) and log everything in [docs/plan/BUILD_LEDGER.md](docs/plan/BUILD_LEDGER.md).
 Plan: [docs/plan/MASTER_PLAN.md](docs/plan/MASTER_PLAN.md) · Evidence: [docs/plan/RESEARCH_HIGGSFIELD.md](docs/plan/RESEARCH_HIGGSFIELD.md) · Build instructions: [docs/plan/work-orders/](docs/plan/work-orders/)
 
 ## Next action
@@ -19,6 +20,10 @@ Start **WO-01** (real file I/O) — it unblocks everything. Then WO-02 and WO-03
 - Builder-agent protocol: one WO = one branch = draft PR; never merge to main without owner sign-off.
 
 ## Gotchas
+- Full verified list lives in HANDOFF.md §12 — headline items:
+- The "real pipeline" runs real algorithms on PROCEDURAL inputs (`buildStageContext()`) — uploads never reach it; that seam is WO-01/02's whole job.
+- `public/` already serves a live dashboard at `/` — don't break it; WO-04's workspace is additive until it deliberately replaces it.
 - Existing smokes assume the manual `advance` flow — WO-03 must keep it behind `features.manualAdvance`.
+- Python engine is NOT in this repo yet — it's at `~/.claude/skills/omni3d/engine/` on the owner's machine until WO-02 merges it in.
 - higgsfield.ai/pricing is JS-rendered; research pricing numbers conflict across sources — treat as approximate.
 - Windows dev box: engine setup uses bash (`setup.sh`) — test scripts cross-platform or document Git Bash requirement.

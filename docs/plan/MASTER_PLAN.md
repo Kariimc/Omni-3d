@@ -27,7 +27,7 @@ TypeScript + Fastify 5 + Zod, tsx (no build step), optional Supabase/pg. What's 
 - Schema-first: every stage payload is a Zod schema exported to JSON Schema; `npm run check` = typecheck + validate + 11 smoke tests.
 - Python free local engine (in the `omni3d` skill's `engine/`, to be merged into this repo): FLUX.1-schnell/SDXL text→image; MiDaS depth image→3D `.glb` (CPU-verified); TRELLIS/TripoSR GPU tier; mock backend for no-GPU CI.
 
-**Gaps (the scaffold boundary):** artifacts are `asset://` manifest URIs, not files on disk — no upload/download layer; DL reconstruction (NeRF/triplane, FlexiCubes, GNN joints, WHAM mocap, PBR delight) not wired; no UI beyond a wireframe doc; no auth, billing, queue/worker, or GPU orchestration; the Python engine and TS pipeline aren't connected.
+**Gaps (the scaffold boundary):** artifacts are `asset://` manifest URIs, not files on disk — no upload/download layer; the "real" providers run real algorithms on **procedurally generated inputs** (`buildStageContext()`) — uploaded media never reaches the pipeline; DL reconstruction (NeRF/triplane, FlexiCubes, GNN joints, WHAM mocap, PBR delight) not wired; only a minimal live dashboard at `/` (`public/`), no full workspace UI; no auth, billing, queue/worker, or GPU orchestration; the Python engine and TS pipeline aren't connected.
 
 ## The Top 10 community-wished features (each traced to research Part 2)
 
@@ -87,6 +87,7 @@ Principles: keep schema-first Zod contracts for every new surface; every WO exte
 
 ## Rules for builder agents
 
+0. **Read [HANDOFF.md](./HANDOFF.md) before anything else**, and log your work in [BUILD_LEDGER.md](./BUILD_LEDGER.md) — that pair is how no context is ever lost between agents.
 1. Read your work order fully, then read every repo file it names, **before writing code**.
 2. Smallest change that works; follow existing patterns (Zod schema → provider → smoke test → wire into `npm run check`).
 3. Every WO's acceptance criteria are commands with expected output — run them; paste output in your report. Green `npm run check` is mandatory before commit.
