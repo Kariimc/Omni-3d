@@ -21,7 +21,7 @@ The goal: turn Omni 3D (the owner's video→game-ready-3D pipeline) into a **com
 3. Wrote 14, then 18, self-contained **work orders** for builder agents. → `docs/plan/work-orders/WO-01..WO-18`.
 4. Wrote a **builder handoff** (verified baseline, repo contracts, gotchas) + an append-only **build ledger**. → `HANDOFF.md`, `BUILD_LEDGER.md`.
 5. **Bulletproofed** it: adversarial self-review, a site spec to beat higgsfield.ai, a measurable quality bar, and 4 operational WOs (deploy, marketing site, quality gate, safety/legal). → `SITE_SPEC.md`, `QUALITY_BAR.md`, `PLAN_REVIEW.md`.
-6. Wrote a **wargame** (bug-hunt battle plan) for a cheaper executor to run. → `wargames/07-bugs.md`.
+6. Wrote two **wargames** (battle plans for a cheaper executor to run): `wargames/07-bugs.md` (bug hunt) and `wargames/08-wo01-file-io.md` (executing WO-01, the first build).
 
 All of that is committed and pushed. Nothing is half-done.
 
@@ -58,6 +58,7 @@ For **hunting bugs**: `wargames/07-bugs.md` (fully self-contained, runs without 
 ## Where to start (pick based on what the owner wants)
 
 - **"Start building"** → WO-01 (real file I/O) is the unblocker; then WO-02 and WO-03 in parallel; deploy WO-15 as soon as WO-03 lands. Critical path: WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11 → WO-17. Follow `work-orders/README.md` protocol: branch `wo/NN-slug`, log `STARTED` in the ledger, build to spec, paste acceptance output in a draft PR, never merge to main.
+- **"Build WO-01"** → execute `wargames/08-wo01-file-io.md` verbatim (branch `wo/01-real-file-io`). It wargames the whole WO-01 build move by move — the recommended first build.
 - **"Run the bug hunt"** → execute `wargames/07-bugs.md` verbatim (branch `wargame/07-bugs`). It's written to run end-to-end without questions.
 - **"Change the plan"** → edit under `docs/plan/`, keep the ledger + this file current, refresh the Desktop mirror.
 

@@ -3,7 +3,7 @@
 ## Next session starts here → [docs/plan/SESSION_HANDOFF.md](docs/plan/SESSION_HANDOFF.md)
 
 ## Current focus
-Higgsfield-competitor build plan is bulletproofed and ready: 18 work orders, site spec, measurable quality bar, adversarial risk register with mandated fallbacks. Plus Wargame 07 (bug-hunt battle plan) in [wargames/07-bugs.md](wargames/07-bugs.md). Tree clean, all pushed to PR #2. No code written yet — planning phase complete.
+Higgsfield-competitor build plan is bulletproofed and ready: 18 work orders, site spec, measurable quality bar, adversarial risk register with mandated fallbacks. Plus two wargames: [07-bugs.md](wargames/07-bugs.md) (bug hunt) and [08-wo01-file-io.md](wargames/08-wo01-file-io.md) (executing WO-01, the first build). Tree clean, all pushed to PR #2. No product code written yet — planning phase complete.
 Site requirements: [docs/plan/SITE_SPEC.md](docs/plan/SITE_SPEC.md) · Release bar: [docs/plan/QUALITY_BAR.md](docs/plan/QUALITY_BAR.md) · Risks/fallbacks: [docs/plan/PLAN_REVIEW.md](docs/plan/PLAN_REVIEW.md)
 **Builder agents start here: [docs/plan/HANDOFF.md](docs/plan/HANDOFF.md)** (verified baseline, contracts, gotchas) and log everything in [docs/plan/BUILD_LEDGER.md](docs/plan/BUILD_LEDGER.md).
 Plan: [docs/plan/MASTER_PLAN.md](docs/plan/MASTER_PLAN.md) · Evidence: [docs/plan/RESEARCH_HIGGSFIELD.md](docs/plan/RESEARCH_HIGGSFIELD.md) · Build instructions: [docs/plan/work-orders/](docs/plan/work-orders/)
