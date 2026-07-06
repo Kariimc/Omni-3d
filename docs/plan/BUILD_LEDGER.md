@@ -63,6 +63,22 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 - Next: start WO-01 (real file I/O). WO-02 and WO-03 may start in parallel after WO-01's
   AssetStore interface merges (or code against its spec and rebase).
 
+### [WARGAME] Wargames 07 + 08 written; intel indexed — LANDED — 2026-07-06
+- Agent/session: planning session (Claude), after read-only recon of the full pipeline
+- Branch/PR: plan/higgsfield-competitor · PR #2 (draft)
+- Done: `wargames/07-bugs.md` (bug-hunt battle plan), `wargames/08-wo01-file-io.md` (WO-01
+  build battle plan), and `wargames/README.md` (index + carried intel — verified repo facts,
+  DI/factory seams, scaffold boundary, bug-suspect verdicts, WO-01 traps + fallbacks). Wired
+  the index into SESSION_HANDOFF.md and HANDOFF.md so no builder/debugger misses it.
+- Discovered (now carried in wargames/README.md so it's not lost):
+  - Bug suspects are HYPOTHESES, not confirmed. Best guesses from recon: #1 concurrent-advance
+    race is the real one (but maybe only on the Supabase store); #2 store-wide seq and #5
+    engine:"both" collapse are likely NOT-A-BUG; #3/#4 minor. Executor must PROVE before fixing.
+  - WO-01 specifics verified: no multipart/gltf deps yet; `Mesh` type at retopology.ts:5-8 is
+    what serializes to .glb; `buildApp` new params must be optional-default (grep callers first).
+- Next: unchanged — run wargame 08 (build WO-01) or 07 (bug hunt), or keep planning. Neither
+  wargame executed yet; no product code exists.
+
 ### [PLAN] Bulletproofing pass: site spec, quality bar, adversarial review, WO-15..18 — LANDED — 2026-07-06
 - Agent/session: planning session (Claude; two critique subagents hit session limits, so the
   adversarial review + site spec were done inline against the full research and codebase context)

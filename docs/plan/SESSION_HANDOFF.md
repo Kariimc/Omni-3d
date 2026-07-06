@@ -31,7 +31,7 @@ For **building a feature**: `docs/plan/HANDOFF.md` (contracts, baseline, gotchas
 
 For **the "why"**: `MASTER_PLAN.md` → `RESEARCH_HIGGSFIELD.md`.
 
-For **hunting bugs**: `wargames/07-bugs.md` (fully self-contained, runs without questions).
+For **building or debugging any `src/` code**: start at `wargames/README.md` — it indexes both wargames AND carries the verified repo intel/verdicts they surfaced (baseline facts, the DI/factory seams, the scaffold boundary, bug-hunt suspect statuses, WO-01 build traps + fallbacks). Read it before the specific wargame so you inherit the findings without re-deriving them.
 
 | File | What it is |
 |---|---|
@@ -44,7 +44,9 @@ For **hunting bugs**: `wargames/07-bugs.md` (fully self-contained, runs without 
 | `docs/plan/BUILD_LEDGER.md` | Append-only running memory + WO status board (all 18 = "not started") |
 | `docs/plan/work-orders/README.md` | WO index, dependency graph, per-WO protocol |
 | `docs/plan/work-orders/WO-01..18` | Self-contained build specs, each with acceptance commands |
+| `wargames/README.md` | **Wargame index + carried intel** — verified repo facts, seams, bug-suspect verdicts, WO-01 traps. Read before building/debugging `src/` |
 | `wargames/07-bugs.md` | Bug-hunt battle plan for a cheaper executor |
+| `wargames/08-wo01-file-io.md` | WO-01 (real file I/O) build battle plan |
 | `PROGRESS.md` (repo root) | Live one-screen state |
 
 ## The codebase in five facts (from verified recon)

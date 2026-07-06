@@ -11,6 +11,11 @@
 > mandated fallback is in [PLAN_REVIEW.md](./PLAN_REVIEW.md) §2 — follow it, don't improvise.
 > Strategy/evidence, only if you need the "why": [MASTER_PLAN.md](./MASTER_PLAN.md),
 > [RESEARCH_HIGGSFIELD.md](./RESEARCH_HIGGSFIELD.md).
+>
+> **Before building or debugging any `src/` code, also read [../../wargames/README.md](../../wargames/README.md)** —
+> it carries verified repo intel and per-suspect verdicts from the wargames (the DI/factory
+> seams, the scaffold boundary, WO-01 build traps + fallbacks) so you don't re-derive them.
+> WO-01 has a full move-by-move build plan at `wargames/08-wo01-file-io.md`.
 
 ---
 
