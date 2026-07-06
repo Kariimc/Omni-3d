@@ -14,6 +14,7 @@ Higgsfield's most-praised trait is ease of use; Omni 3D currently has zero UI. T
 
 ## Spec
 1. **Stack**: Vite + React + TypeScript in `web/` (keep the repo no-build-server philosophy: `npm run dev` proxies to the Fastify API; `npm run build` outputs static files served by Fastify at `/app`). Three.js via `@react-three/fiber` + `@react-three/drei` for the GLB viewer.
+   **Design contract (PLAN_REVIEW §1):** all styling consumes `design/tokens.css` (WO-16's contract — Studio Dark, see ../SITE_SPEC.md §5). If WO-16 hasn't landed, create `design/tokens.css` yourself as a minimal stub following SITE_SPEC §5 and note it in the ledger — never invent a second palette. UX principles in SITE_SPEC §4 are requirements (cost-on-button, honest queue chip, sticky toggles, modes-not-apps).
 2. **Screens**:
    - **New job**: drag-drop upload (image/video) or text prompt; target selector (UE5 / Unity / generic glTF); poly budget (hero/prop/background); "Run" button. Shows queue depth from `/queue/status` BEFORE submitting (honest-queue principle).
    - **Job view**: 6-stage progress rail driven by the SSE stream (stage names in plain words: "Sampling frames… Carving shape… Cleaning geometry… Building skeleton… Copying motion… Engine checks"); live log line per event; error state shows the refund note ("This run failed — nothing was charged").
@@ -32,7 +33,7 @@ npm run dev & npm run web:dev    # then, in a browser (paste screenshots or DOM-
 # 2. result renders in the 3D viewer and Download saves a valid .glb
 npm run web:build && npm start   # /app serves the built UI
 ```
-Verify in a real browser (Playwright or preview tooling) — not just typecheck.
+Verification must be a scripted Playwright run with screenshots attached to the PR (PLAN_REVIEW §3) — not manual clicking. Exit criterion: once the workspace covers the old dashboard's functionality, `/` redirects to `/app` (until then, leave `public/` untouched).
 
 ## Out of scope
 Auth (WO-05), cost meter UI (WO-06), timeline (WO-11), mobile layout polish.

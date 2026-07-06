@@ -1,7 +1,8 @@
 # PROGRESS
 
 ## Current focus
-Higgsfield-competitor build plan + builder handoff are written and ready for execution.
+Higgsfield-competitor build plan is bulletproofed and ready: 18 work orders, site spec, measurable quality bar, adversarial risk register with mandated fallbacks.
+Site requirements: [docs/plan/SITE_SPEC.md](docs/plan/SITE_SPEC.md) · Release bar: [docs/plan/QUALITY_BAR.md](docs/plan/QUALITY_BAR.md) · Risks/fallbacks: [docs/plan/PLAN_REVIEW.md](docs/plan/PLAN_REVIEW.md)
 **Builder agents start here: [docs/plan/HANDOFF.md](docs/plan/HANDOFF.md)** (verified baseline, contracts, gotchas) and log everything in [docs/plan/BUILD_LEDGER.md](docs/plan/BUILD_LEDGER.md).
 Plan: [docs/plan/MASTER_PLAN.md](docs/plan/MASTER_PLAN.md) · Evidence: [docs/plan/RESEARCH_HIGGSFIELD.md](docs/plan/RESEARCH_HIGGSFIELD.md) · Build instructions: [docs/plan/work-orders/](docs/plan/work-orders/)
 

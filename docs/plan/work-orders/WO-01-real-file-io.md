@@ -32,6 +32,7 @@ curl -o out.glb localhost:8787/assets/...      # → valid GLB: first 4 bytes ar
 npx @gltf-transform/cli validate out.glb       # → no errors
 ```
 Add `smoke:assets` script covering upload→pipeline→download and wire it into `npm run check`.
+Negative tests are mandatory in the smoke (PLAN_REVIEW §3): path traversal (`GET /assets/..%2f..%2fetc%2fpasswd` and raw `../` variants) → 404, never file contents; upload over the size cap → 413.
 
 ## Out of scope
 S3/Supabase storage, auth, resumable uploads, video artifact rendering.

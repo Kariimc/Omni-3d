@@ -17,6 +17,7 @@ Prerequisite for billing (WO-14), characters (WO-09), and teams later. The "loca
 3. **API**: Fastify plugin verifying the Supabase JWT (`Authorization: Bearer`); `POST/GET /projects`; `POST /pipeline` accepts `projectId`; all job reads scoped to owner. In localMode the plugin injects the `local` user.
 4. **Web**: sign-in screen (skipped in localMode), project switcher in the header, jobs list per project.
 5. Never trust client-sent user ids; owner always derives from the verified JWT.
+6. **RLS is defense-in-depth, not the mechanism (PLAN_REVIEW §1):** the API server uses the Supabase SERVICE key, which BYPASSES RLS — so ownership checks must be explicit in the API layer on every read/write (`where owner_id = verifiedUser`). Write the RLS policies anyway (protects direct-to-Supabase clients), but the smoke must prove the API path denies cross-user access on its own.
 
 ## Acceptance
 ```bash

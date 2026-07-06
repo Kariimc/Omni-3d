@@ -35,6 +35,10 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 | 12 4K output | not started | — | — |
 | 13 pro export + API | not started | — | — |
 | 14 honest billing | not started | — | — |
+| 15 deploy + ops | not started | — | — |
+| 16 marketing site | not started | — | — |
+| 17 quality gate | not started | — | — |
+| 18 safety + legal | not started | — | — |
 
 ---
 
@@ -58,3 +62,23 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
   - Jimp v1 + meshoptimizer-WASM API quirks: see HANDOFF §12.
 - Next: start WO-01 (real file I/O). WO-02 and WO-03 may start in parallel after WO-01's
   AssetStore interface merges (or code against its spec and rebase).
+
+### [PLAN] Bulletproofing pass: site spec, quality bar, adversarial review, WO-15..18 — LANDED — 2026-07-06
+- Agent/session: planning session (Claude; two critique subagents hit session limits, so the
+  adversarial review + site spec were done inline against the full research and codebase context)
+- Branch/PR: plan/higgsfield-competitor · https://github.com/Kariimc/Omni-3d/pull/2 (draft)
+- Done: SITE_SPEC.md (IA, landing spec, workspace UX rules, Studio Dark design direction),
+  QUALITY_BAR.md (measurable release budgets + beats-Higgsfield head-to-head table),
+  PLAN_REVIEW.md (contract fixes, 10-risk register with mandated fallbacks, acceptance
+  hardening), new WO-15 (deploy/CI/status), WO-16 (design system + marketing site),
+  WO-17 (quality gate as CI), WO-18 (safety + legal). Amended WO-01/03/04/05/08/12 with
+  the review's fixes (pg-boss direct connection, service-key-bypasses-RLS, SwiftShader
+  fallback, tokens contract, negative tests, tile-render fallback).
+- Discovered:
+  - Supabase SERVICE key bypasses RLS — API-layer ownership checks are the real mechanism
+    (now in WO-05). Anyone touching Supabase reads must know this.
+  - pg-boss cannot run over PgBouncer transaction pooling — use the direct connection string.
+  - Design decision recorded: Studio Dark direction (SITE_SPEC §5), rejected alternatives
+    documented so agents don't relitigate.
+- Next: unchanged — start WO-01; also start WO-15 as soon as WO-03 lands (deploy early so
+  every later WO verifies against a real environment).

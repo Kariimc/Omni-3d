@@ -83,7 +83,12 @@ Principles: keep schema-first Zod contracts for every new surface; every WO exte
 - **Phase 0 — Make it real end-to-end:** WO-01 (file I/O — real `.glb` on disk), WO-02 (Python engine ↔ TS pipeline bridge), WO-03 (durable job queue + progress events + auto-refund semantics). *Exit test: photo in → downloadable rigged `.glb` out, one command.*
 - **Phase 1 — Product surface:** WO-04 (web workspace + 3D viewer), WO-05 (auth + projects), WO-06 (cost meter). *Exit test: a stranger signs up and produces an asset without reading docs.*
 - **Phase 2 — Parity core:** WO-07 (model gateway), WO-08 (camera presets), WO-09 (3D character anchor). *Exit test: same character, 5 shots, 2 different video models, zero identity drift.*
-- **Phase 3 — Wish-list finishers:** WO-10 (audio+lipsync), WO-11 (timeline), WO-12 (4K), WO-13 (pro export + public API), WO-14 (honest billing + TRUST.md). *Exit test: 30-second multi-shot 4K clip with audio, plus the character as an FBX, exported from one project.*
+- **Phase 3 — Wish-list finishers:** WO-10 (audio+lipsync), WO-11 (timeline), WO-12 (4K), WO-13 (pro export + public API), WO-14 (honest billing + TRUST.md), WO-18 (safety + legal). *Exit test: 30-second multi-shot 4K clip with audio, plus the character as an FBX, exported from one project.*
+- **Ship-a-site track (parallel):** WO-15 (deploy/CI/status — start in Phase 1), WO-16 (design system + marketing site per [SITE_SPEC.md](./SITE_SPEC.md)), WO-17 (release gate: [QUALITY_BAR.md](./QUALITY_BAR.md) as CI). *Exit test: the deployed site passes every QUALITY_BAR MUST and the head-to-head table in §E beats Higgsfield on every row.*
+
+## The site IS the product
+
+"Better than Higgsfield" is judged at the site, not the repo. Three documents make that bar concrete and non-negotiable: [SITE_SPEC.md](./SITE_SPEC.md) (information architecture, landing page, workspace UX, Studio Dark design direction), [QUALITY_BAR.md](./QUALITY_BAR.md) (measurable budgets — Lighthouse ≥95, <90 s to first generation, WCAG 2.2 AA, automated dark-pattern and honesty gates), and [PLAN_REVIEW.md](./PLAN_REVIEW.md) (the adversarial pass: risk register with mandated fallbacks, so no agent improvises under pressure).
 
 ## Rules for builder agents
 

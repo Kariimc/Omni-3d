@@ -7,13 +7,14 @@ Each `WO-*.md` file is a **self-contained build instruction** for one agent. Str
 ```
 Phase 0 (serial-ish):   WO-01 ──► WO-02 ─────────────┐
                         WO-01 ──► WO-03 ─────────────┤
-Phase 1 (parallel):     WO-03 ──► WO-04, WO-05, WO-06│
-Phase 2 (parallel):     WO-02+06 ► WO-07 ──► WO-08 ──► WO-09
+Phase 1 (parallel):     WO-03 ──► WO-04, WO-05, WO-06, WO-15 (deploy early!)
+Phase 2 (parallel):     WO-02+06 ► WO-07 ──► WO-08 ──► WO-09 · WO-16 (site, needs 15)
 Phase 3 (parallel):     WO-10 (07,09) · WO-11 (08,09,10) · WO-12 (02,08)
-                        WO-13 (07,08,12) · WO-14 (05,06)
+                        WO-13 (07,08,12) · WO-14 (05,06) · WO-18 (05,07,15)
+Release gate:           WO-17 (04,15,16) — QUALITY_BAR becomes CI; first public release ships through it
 ```
 
-Critical path: **WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11**.
+Critical path: **WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11 → WO-17**.
 
 ## Per-WO protocol
 
@@ -44,3 +45,9 @@ Critical path: **WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11**.
 | [WO-12](./WO-12-4k-output.md) | 4K output, upscaling included | 3 |
 | [WO-13](./WO-13-pro-export-api.md) | Public API all tiers, batch, ProRes/alpha, 3D export | 3 |
 | [WO-14](./WO-14-honest-billing.md) | Honest billing + TRUST.md policy gates | 3 |
+| [WO-15](./WO-15-deploy-ops.md) | Deployment, CI, observability, status page | 1 |
+| [WO-16](./WO-16-marketing-site.md) | Design system + marketing site (implements SITE_SPEC) | 2 |
+| [WO-17](./WO-17-quality-gate.md) | Quality gate — QUALITY_BAR as CI | gate |
+| [WO-18](./WO-18-safety-legal.md) | Content safety + legal pages | 3 |
+
+Site requirements: [../SITE_SPEC.md](../SITE_SPEC.md) · Release bar: [../QUALITY_BAR.md](../QUALITY_BAR.md) · Risk register & mandated fallbacks: [../PLAN_REVIEW.md](../PLAN_REVIEW.md)

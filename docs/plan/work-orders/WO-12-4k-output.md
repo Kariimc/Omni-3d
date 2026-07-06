@@ -26,7 +26,7 @@ npm run smoke:upscale    # NEW (mock/bicubic): 640×360 png → x4 → 2560×144
                          # (paste ffprobe of both)
 # Manual with Real-ESRGAN installed (document): real x4 on a sample, before/after saved
 ```
-4K server render: turntable at 3840×2160 completes (or documents the real memory ceiling found).
+4K server render: turntable at 3840×2160 completes (or documents the real memory ceiling found). **Fallback (PLAN_REVIEW risk #3):** if 4K exceeds container memory, tile-render (2×2 tiles at 1920×1080, stitch with ffmpeg) rather than capping resolution.
 
 ## Out of scope
 Hosted upscale providers (Topaz etc.), face-restoration models, HDR.

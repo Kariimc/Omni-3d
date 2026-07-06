@@ -12,7 +12,7 @@ Community complaints #3 (charged for failed generations) and #8 (unpredictable q
 - `src/server.ts` (advance flow), `src/loops/runner.ts`, `src/store/` (job store, Supabase/pg variants), `src/live/bus.ts` + `src/live/events.ts` (existing event bus — reuse it, don't build a second one), `src/config.ts`.
 
 ## Spec
-1. **Queue**: `pg-boss` when `DATABASE_URL`/Supabase pg is configured; an in-process `SimpleQueue` fallback (FIFO, single worker, setImmediate loop) when not — dev must work with zero infra. Interface in `src/queue/queue.ts`, both behind it.
+1. **Queue**: `pg-boss` when `DATABASE_URL`/Supabase pg is configured; an in-process `SimpleQueue` fallback (FIFO, single worker, setImmediate loop) when not — dev must work with zero infra. Interface in `src/queue/queue.ts`, both behind it. Include a `priority` field on enqueue (default normal; WO-11 scene children run low). **Gotcha (PLAN_REVIEW risk):** pg-boss needs a DIRECT Postgres connection — Supabase's pooled PgBouncer transaction-mode string breaks it. Use the direct connection string (`DIRECT_URL`, port 5432) for the queue; document both env vars.
 2. **Worker** (`src/queue/worker.ts`): consumes `pipeline.run` jobs, drives all stages via the existing runner, emits stage events on the live bus (`job:queued`, `job:stage:start/finish`, `job:failed`, `job:done`, each with `queuePosition` where known). Retries: 2 per stage with backoff; then mark failed.
 3. **API**: `POST /pipeline` now enqueues (keep the old synchronous `advance` path working behind `features.manualAdvance` for the existing smokes); `GET /jobs/:id/events` = SSE stream of that job's bus events; `GET /queue/status` = depth + worker liveness.
 4. **Refund bookkeeping** (`src/billing/ledger.ts` — bookkeeping only, no payments yet): every job start writes a `charge` row `{jobId, estimatedCredits, status}`; on failure the row flips to `refunded` automatically. Zod schema; stored via the existing store layer (in-memory + pg).
@@ -25,8 +25,8 @@ Community complaints #3 (charged for failed generations) and #8 (unpredictable q
 ```bash
 npm run check                                        # green, old smokes intact
 npm run smoke:queue                                  # NEW: enqueue → SSE shows 6 stage events → done
-# durability test (in smoke or manual, document which):
-#   enqueue job, kill worker after stage 2, restart → job completes; paste log
+# durability test — MANDATORY in the smoke (not manual, PLAN_REVIEW §3): the smoke
+#   programmatically kills the worker after stage 2, restarts it, asserts completion
 # failure test: job with forced-fail stage → ledger row status becomes "refunded"
 ```
 Wire `smoke:queue` into `npm run check`.

@@ -6,7 +6,10 @@
 >
 > Reading order: **this file** → your WO file in [work-orders/](./work-orders/) → every repo
 > file your WO names → [BUILD_LEDGER.md](./BUILD_LEDGER.md) (check what changed since this
-> handoff was written). Strategy/evidence, only if you need the "why": [MASTER_PLAN.md](./MASTER_PLAN.md),
+> handoff was written). UI/site WOs also read [SITE_SPEC.md](./SITE_SPEC.md) (requirements) and
+> [QUALITY_BAR.md](./QUALITY_BAR.md) (release budgets). If your work hits a known risk, the
+> mandated fallback is in [PLAN_REVIEW.md](./PLAN_REVIEW.md) §2 — follow it, don't improvise.
+> Strategy/evidence, only if you need the "why": [MASTER_PLAN.md](./MASTER_PLAN.md),
 > [RESEARCH_HIGGSFIELD.md](./RESEARCH_HIGGSFIELD.md).
 
 ---
@@ -134,6 +137,10 @@ Current API routes (all in `src/app.ts`): `GET /health /schemas /jobs /jobs/:id 
 | Gateway contracts (`src/gateway/contracts.ts`) + provider adapter shape (`capabilities()`, `costRows()`) | WO-07 | WO-08 (textHint), 09 (characterId conditioning), 10 (TTS adapters) |
 | Camera preset schema + `presets/cameras.json` + `POST /render/camera` | WO-08 | WO-09 (reference renders), 11, 12, 13 |
 | Character model (`geometryHash`!) + `/characters` | WO-09 | WO-10, 11 |
+| Docker/CI/staging env + PR template + `/status` | WO-15 | ALL (CI is the merge gate), WO-16, 17 |
+| `design/tokens.css` (Studio Dark, SITE_SPEC §5) | WO-16 (WO-04 stubs it if building first) | WO-04 and every UI surface |
+| e2e suite + Lighthouse budgets + honesty-lint | WO-17 | every release |
+| `policyVersion` on jobs + `blocked_by_policy` state | WO-18 | WO-07 gateway, ledger |
 
 Rules: (a) if you need a contract your WO doesn't own, code against the WO file's spec and mark the ledger `BLOCKED-ON: WO-NN` rather than inventing a parallel version; (b) if you must CHANGE a contract you don't own, that's an escalation (§11); (c) additive changes to your own contract are fine — note them in the ledger.
 
