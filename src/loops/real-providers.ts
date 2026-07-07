@@ -1,9 +1,11 @@
 import { Jimp } from "jimp";
+import { meshToGlb } from "../assets/glb";
+import type { AssetStore } from "../assets/store";
 import type { PipelineJob, StagePayload } from "../schemas";
 import { type FrameInput, realFrameSampler } from "./providers/frame-sampler";
 import { realEitl } from "./providers/mesh-check";
 import { type MotionClip, realRetarget } from "./providers/retarget";
-import { type Mesh, realRetopology } from "./providers/retopology";
+import { type Mesh, QUAD_TARGET, realRetopology, simplifyMesh } from "./providers/retopology";
 import { type BoneSeg, realSkinWeights } from "./providers/skin-weights";
 import { projectSilhouette, realVoxelDraft, type Silhouette, type VoxelGrid } from "./providers/voxel-carve";
 import { advanceJob, type AdvanceResult, type StageGen } from "./runner";
@@ -158,10 +160,15 @@ export function buildRealProviders(ctx: StageContext): Partial<Record<string, St
 
 /** Drive a job to completion through the runner. When job.features.realPipeline is set,
  *  every stage runs its real provider; otherwise the synthetic generators run. Same
- *  runner, same loop chain, same EITL gate — the flag only swaps the implementations. */
+ *  runner, same loop chain, same EITL gate — the flag only swaps the implementations.
+ *
+ *  When an AssetStore is supplied (WO-01), a passing real run also serializes the
+ *  decimated mesh to a real binary .glb as a SIDE EFFECT — the emitted stage payloads
+ *  are untouched — and points artifacts.retopoMesh at the stored file. */
 export async function runRealPipeline(
   job: PipelineJob,
   ctx: StageContext,
+  assets?: AssetStore,
 ): Promise<{ job: PipelineJob; payloads: StagePayload[] }> {
   const overrides = job.features.realPipeline ? buildRealProviders(ctx) : {};
   let current = job;
@@ -171,6 +178,13 @@ export async function runRealPipeline(
     if (result.kind === "complete") break;
     current = result.job;
     payloads.push(result.emitted);
+  }
+  if (assets && job.features.realPipeline && current.status === "passed") {
+    const target = QUAD_TARGET[current.targets.polyBudget];
+    const { indices } = await simplifyMesh(ctx.mesh, target * 2);
+    const glb = await meshToGlb({ positions: ctx.mesh.positions, indices }, current.jobId);
+    const uri = await assets.put(glb, { scope: current.jobId, ext: "glb", contentType: "model/gltf-binary" });
+    current = { ...current, artifacts: { ...current.artifacts, retopoMesh: uri } };
   }
   return { job: current, payloads };
 }

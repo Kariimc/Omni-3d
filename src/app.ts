@@ -1,8 +1,10 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import fastifyMultipart from "@fastify/multipart";
 import fastifyWebsocket from "@fastify/websocket";
 import Fastify, { type FastifyInstance } from "fastify";
+import { AssetNotFoundError, LocalAssetStore, type AssetStore } from "./assets/store";
 import { InMemoryEventBus, type EventBus } from "./live/bus";
 import { connectedEvent, errorEvent, eventsForAdvance, type LiveEvent } from "./live/events";
 import { advanceJob } from "./loops/runner";
@@ -27,13 +29,61 @@ interface Sock {
   on(event: "close", cb: () => void): void;
 }
 
-/** Build the Omni3D API. Pure factory (no listen) so it is testable via app.inject(). */
+/** Upload allow-list: mimetype → stored extension. */
+const UPLOAD_TYPES: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "video/mp4": "mp4",
+  "video/quicktime": "mov",
+  "audio/wav": "wav",
+  "audio/x-wav": "wav",
+};
+
+const MAX_UPLOAD_BYTES = Number(process.env.OMNI3D_MAX_UPLOAD_MB ?? 200) * 1024 * 1024;
+
+/** Build the Omni3D API. Pure factory (no listen) so it is testable via app.inject().
+ *  `assets` is optional-with-default so existing 2-arg callers keep working (WO-01). */
 export async function buildApp(
   store: JobStore,
   bus: EventBus = new InMemoryEventBus(),
+  assets: AssetStore = new LocalAssetStore(),
 ): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
   await app.register(fastifyWebsocket);
+  await app.register(fastifyMultipart, { limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 } });
+
+  // Upload a real input file. The store mints the asset:// URI; clients never pick paths.
+  app.post("/assets", async (req, reply) => {
+    const file = await req.file();
+    if (!file) return reply.code(400).send({ error: "no_file" });
+    const ext = UPLOAD_TYPES[file.mimetype];
+    if (!ext) {
+      return reply
+        .code(400)
+        .send({ error: "unsupported_type", got: file.mimetype, allowed: Object.keys(UPLOAD_TYPES) });
+    }
+    const data = await file.toBuffer().catch(() => null); // throws when fileSize limit is hit
+    if (data === null || file.file.truncated) {
+      return reply.code(413).send({ error: "too_large", maxBytes: MAX_UPLOAD_BYTES });
+    }
+    const uri = await assets.put(data, { scope: "uploads", ext, contentType: file.mimetype });
+    return reply.code(201).send({ uri, size: data.length, contentType: file.mimetype });
+  });
+
+  // Download any stored artifact by its asset:// URI path. Traversal-safe in the store.
+  app.get("/assets/*", async (req, reply) => {
+    const splat = (req.params as { "*": string })["*"];
+    const uri = `asset://${splat}`;
+    try {
+      const meta = await assets.stat(uri);
+      const stream = await assets.get(uri);
+      return reply.code(200).type(meta.contentType).header("content-length", meta.size).send(stream);
+    } catch (err) {
+      if (err instanceof AssetNotFoundError) return reply.code(404).send({ error: "not_found", uri });
+      throw err;
+    }
+  });
 
   app.get("/health", async () => ({
     ok: true,
@@ -170,7 +220,9 @@ export async function buildApp(
     try {
       for (const ev of await store.getEvents(jobId, lastSent)) send(ev);
     } catch {
-      // best-effort replay; continue with the live stream
+      // Replay is best-effort, but the failure must be VISIBLE: without this signal a
+      // resuming client gets a silent gap in its event log. Continue with the live stream.
+      socket.send(JSON.stringify(errorEvent("event replay failed; stream may have a gap — refetch /jobs/:id/events")));
     }
     replaying = false;
     for (const ev of buffered) send(ev);
