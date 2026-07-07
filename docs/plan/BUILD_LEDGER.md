@@ -63,6 +63,30 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 - Next: start WO-01 (real file I/O). WO-02 and WO-03 may start in parallel after WO-01's
   AssetStore interface merges (or code against its spec and rebase).
 
+### [WARGAME-09] WO-03 job-queue battle plan written — LANDED — 2026-07-06
+- Agent/session: planning session (read-only recon of the advance/queue/bus flow)
+- Branch/PR: plan/higgsfield-competitor · (docs)
+- Note: wargames 07 (bug hunt) and 08 (WO-01) have since been RUN — draft PRs #3 and #4 off the
+  plan branch. 07 fixed a real silent `/live` replay-failure defect (+ smoke:race, smoke:live-replay);
+  08 built real file I/O (uploads + validator-clean .glb). Those branches carry their own ledger
+  entries; this plan-branch ledger records the wargame authoring.
+- Done: `wargames/09-wo03-job-queue.md` — move-by-move build plan for WO-03 (durable queue + worker +
+  refund ledger), full universal-template shape (assumption header, Move 0 ground truth, expected-obs/
+  failure/counter per move, forks with triggers, RECON-NEEDED table, looks-broken-but-isnt list,
+  confidence labels, abort conditions incl. MANUAL-PENDING, verification runs + paper trail + scoring).
+  Indexed in wargames/README.md with carried intel.
+- Discovered (carry into the WO-03 build):
+  - **[on-paper] The persist+publish loop lives in the `/advance` HTTP handler** (app.ts:89-94), NOT in
+    `runRealPipeline` (persists nothing). Worker must call a shared EXTRACTED helper or queue+live-stream
+    diverge. Wargame Move 1 — do it first.
+  - **[on-paper] `GET /jobs/:id/events` already exists as REST JSON** — add SSE on a NEW `/jobs/:id/stream`
+    path, don't repurpose it.
+  - **[on-paper] `LiveEvent` strict union, DOT-separated types** — add new queue events to the union
+    (`job.done`, not `job:done`) or `LiveEvent.parse` throws.
+  - Single-worker queue structurally fixes the wargame-07 concurrency race; keep one in-flight slot.
+  - pg-boss needs `DIRECT_URL` (5432, not pooled); lazy-import so CI needs no DB.
+- Next: run wargame 09 (build WO-03) on branch `wo/03-job-queue` off the plan branch.
+
 ### [WARGAME] Wargames 07 + 08 written; intel indexed — LANDED — 2026-07-06
 - Agent/session: planning session (Claude), after read-only recon of the full pipeline
 - Branch/PR: plan/higgsfield-competitor · PR #2 (draft)

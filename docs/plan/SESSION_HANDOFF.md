@@ -1,17 +1,20 @@
 # SESSION HANDOFF — read this first next session
 
-> Written 2026-07-06 for the next agent/session. Everything below is verified. Nothing
-> is in flight — the tree is clean and pushed. You are picking up a finished planning
-> phase; the next work is either (a) start building WO-01, or (b) run Wargame 07, or
-> (c) whatever the owner asks. This tells you exactly where everything is.
+> Updated 2026-07-06. Planning is done AND the first two wargames have been executed
+> (two feature branches with draft PRs). The next work is either (a) run Wargame 09
+> (build WO-03, the durable queue), (b) merge the open PRs, or (c) whatever the owner asks.
 
 ## 30-second status
 
 - **Repo:** `C:\Users\Kariim\Desktop\Omni-3d` (also cloned; GitHub `Kariimc/Omni-3d`).
-- **Branch:** `plan/higgsfield-competitor` — **clean, fully pushed**, nothing uncommitted.
-- **PR:** [#2](https://github.com/Kariimc/Omni-3d/pull/2) OPEN (draft), docs-only, not merged. Owner gates the merge — do NOT merge to main without a yes.
-- **Baseline:** GREEN. `npm install && npm run check` = typecheck + validate + 11 smokes pass; `npm run pipeline:real` → `status: passed`.
-- **Desktop mirror:** `C:\Users\Kariim\Desktop\Omni3D-Plan\` holds a copy of everything in `docs/plan/` + `wargames/` + `PROGRESS.md`. Refresh it after any plan change (command in §6).
+- **Branch:** `plan/higgsfield-competitor` — clean, fully pushed. Feature branches: `wargame/07-bugs` (PR #3), `wo/01-real-file-io` (PR #4).
+- **Open draft PRs (owner gates every merge — do NOT merge without a yes):**
+  - [#2](https://github.com/Kariimc/Omni-3d/pull/2) — the plan (docs only)
+  - [#3](https://github.com/Kariimc/Omni-3d/pull/3) — Wargame 07 fix: silent `/live` replay failure now surfaced as an error event (+ `smoke:race`, `smoke:live-replay`)
+  - [#4](https://github.com/Kariimc/Omni-3d/pull/4) — WO-01: real file I/O (uploads + downloadable, validator-clean `.glb`)
+- **Baseline:** GREEN on the plan branch. `npm install && npm run check` → 12 smoke suites pass; `npm run pipeline:real` → `status: passed`. (PR #3 = 14 smokes, PR #4 = 13 smokes on their branches.)
+- **Wargames:** `wargames/README.md` indexes all three; 07 & 08 RAN (PRs #3/#4), 09 (WO-03 queue) is written and ready to run.
+- **Desktop mirror:** `C:\Users\Kariim\Desktop\Omni3D-Plan\` copies `docs/plan/` + `wargames/` + `PROGRESS.md`. Refresh after any plan change.
 
 ## What happened across the last sessions (context so you don't re-ask)
 
@@ -21,9 +24,9 @@ The goal: turn Omni 3D (the owner's video→game-ready-3D pipeline) into a **com
 3. Wrote 14, then 18, self-contained **work orders** for builder agents. → `docs/plan/work-orders/WO-01..WO-18`.
 4. Wrote a **builder handoff** (verified baseline, repo contracts, gotchas) + an append-only **build ledger**. → `HANDOFF.md`, `BUILD_LEDGER.md`.
 5. **Bulletproofed** it: adversarial self-review, a site spec to beat higgsfield.ai, a measurable quality bar, and 4 operational WOs (deploy, marketing site, quality gate, safety/legal). → `SITE_SPEC.md`, `QUALITY_BAR.md`, `PLAN_REVIEW.md`.
-6. Wrote two **wargames** (battle plans for a cheaper executor to run): `wargames/07-bugs.md` (bug hunt) and `wargames/08-wo01-file-io.md` (executing WO-01, the first build).
+6. Wrote three **wargames** and EXECUTED two: `wargames/07-bugs.md` (bug hunt → RAN, fixed a real silent-failure defect, PR #3), `wargames/08-wo01-file-io.md` (WO-01 → RAN, built real file I/O, PR #4), and `wargames/09-wo03-job-queue.md` (WO-03 durable queue → written, ready to run).
 
-All of that is committed and pushed. Nothing is half-done.
+All of that is committed and pushed. Nothing is half-done — the two executed wargames are on their own branches as draft PRs awaiting the owner's merge call.
 
 ## The document map (what to read, in order)
 
@@ -59,10 +62,12 @@ For **building or debugging any `src/` code**: start at `wargames/README.md` —
 
 ## Where to start (pick based on what the owner wants)
 
-- **"Start building"** → WO-01 (real file I/O) is the unblocker; then WO-02 and WO-03 in parallel; deploy WO-15 as soon as WO-03 lands. Critical path: WO-01 → WO-02/03 → WO-04 → WO-09 → WO-11 → WO-17. Follow `work-orders/README.md` protocol: branch `wo/NN-slug`, log `STARTED` in the ledger, build to spec, paste acceptance output in a draft PR, never merge to main.
-- **"Build WO-01"** → execute `wargames/08-wo01-file-io.md` verbatim (branch `wo/01-real-file-io`). It wargames the whole WO-01 build move by move — the recommended first build.
-- **"Run the bug hunt"** → execute `wargames/07-bugs.md` verbatim (branch `wargame/07-bugs`). It's written to run end-to-end without questions.
+- **"Run the next wargame" / "keep building"** → execute `wargames/09-wo03-job-queue.md` verbatim (branch `wo/03-job-queue` off the plan branch). It's the durable-queue build, written move-by-move to run without questions. **Recommended next.**
+- **"Merge the work"** → PRs #3 (bug fix) and #4 (WO-01) are green draft PRs based on the plan branch; owner decides merge order. (They don't conflict — #3 touches `app.ts` `/live`, #4 adds `src/assets/` + `/assets` routes.)
+- **"Build WO-02"** → the engine bridge; note the Python engine lives OUTSIDE the repo at `~/.claude/skills/omni3d/engine/` — WO-02 copies it in. No wargame written for it yet.
 - **"Change the plan"** → edit under `docs/plan/`, keep the ledger + this file current, refresh the Desktop mirror.
+
+Critical path: WO-01 ✅ → **WO-02/03** → WO-04 → WO-09 → WO-11 → WO-17. Follow `work-orders/README.md` protocol: branch `wo/NN-slug`, log `STARTED` in the ledger, build to spec, paste acceptance output in a draft PR, never merge to main.
 
 ## Guardrails that carry across sessions
 
@@ -77,14 +82,15 @@ For **building or debugging any `src/` code**: start at `wargames/README.md` —
 ```bash
 cd /c/Users/Kariim/Desktop/Omni-3d
 git status && git branch --show-current      # expect: clean, plan/higgsfield-competitor
-git log --oneline -6                          # top: 9aed8a8 Wargame 07…
-npm install && npm run check                  # expect: PASS, 11 smokes green
-gh pr view 2 --json state,url                 # expect: OPEN, PR #2
+git log --oneline -6
+npm install && npm run check                  # expect: PASS, 12 smokes green on the plan branch
+gh pr list --state open                       # expect: PRs #2, #3, #4 (all draft)
 ```
-If `npm run check` is not green, STOP and fix the environment before anything else — a red baseline invalidates all downstream work (see wargame Move 0 for the drill).
+If `npm run check` is not green, STOP and fix the environment before anything else — a red baseline invalidates all downstream work (see any wargame's Move 0 for the drill).
 
 ## Open threads / nothing-is-blocked
 
-- No code has been written yet — this is a **planning + wargame** deliverable. All 18 WOs are "not started" on the ledger board.
-- Two critique subagents (adversarial review, site-design) hit the session usage limit last session and returned nothing; their work was done inline instead — so there's no pending subagent to resume, and nothing was lost.
+- **First code has landed** on two feature branches: WO-01 (real file I/O, PR #4) and the wargame-07 fix (PR #3). WO-01 is `IN-REVIEW` on the ledger board; the other 17 WOs are "not started". Both PRs are green and await the owner's merge call.
+- **WO-03 carries one live finding to prove:** the concurrency race (wargame 07 suspect #2) wasn't reproducible on the in-memory store but is flagged for the Supabase store — WO-03's single-worker queue structurally fixes it. The `smoke:race` canary lives on the `wargame/07-bugs` branch (PR #3), so it won't be on the WO-03 branch unless #3 merges first. Wargame 09 notes this.
+- Two critique subagents (adversarial review, site-design) hit the session usage limit an earlier session and returned nothing; their work was done inline instead — no pending subagent, nothing lost.
 - The MCP servers listed as "require authentication" are not needed for this work; ignore unless the owner asks to use one (they'd authorize via claude.ai connector settings or `claude mcp` in an interactive session — not possible non-interactively).

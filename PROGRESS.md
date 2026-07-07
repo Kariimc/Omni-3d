@@ -3,18 +3,18 @@
 ## Next session starts here → [docs/plan/SESSION_HANDOFF.md](docs/plan/SESSION_HANDOFF.md)
 
 ## Current focus
-Higgsfield-competitor build plan is bulletproofed and ready: 18 work orders, site spec, measurable quality bar, adversarial risk register with mandated fallbacks. Plus two wargames: [07-bugs.md](wargames/07-bugs.md) (bug hunt) and [08-wo01-file-io.md](wargames/08-wo01-file-io.md) (executing WO-01, the first build). Tree clean, all pushed to PR #2. No product code written yet — planning phase complete.
+Plan is bulletproofed (18 WOs, site spec, quality bar, risk register) AND the first two wargames have been EXECUTED. Three wargames: [07-bugs.md](wargames/07-bugs.md) (RAN → PR #3, fixed a real silent-failure defect), [08-wo01-file-io.md](wargames/08-wo01-file-io.md) (RAN → PR #4, built real file I/O), [09-wo03-job-queue.md](wargames/09-wo03-job-queue.md) (written, ready to run). Three open draft PRs: #2 (plan), #3 (fix), #4 (WO-01).
 Site requirements: [docs/plan/SITE_SPEC.md](docs/plan/SITE_SPEC.md) · Release bar: [docs/plan/QUALITY_BAR.md](docs/plan/QUALITY_BAR.md) · Risks/fallbacks: [docs/plan/PLAN_REVIEW.md](docs/plan/PLAN_REVIEW.md)
-**Builder agents start here: [docs/plan/HANDOFF.md](docs/plan/HANDOFF.md)** (verified baseline, contracts, gotchas) and log everything in [docs/plan/BUILD_LEDGER.md](docs/plan/BUILD_LEDGER.md).
+**Builder agents start here: [docs/plan/HANDOFF.md](docs/plan/HANDOFF.md)** + [wargames/README.md](wargames/README.md) (carried intel); log everything in [docs/plan/BUILD_LEDGER.md](docs/plan/BUILD_LEDGER.md).
 Plan: [docs/plan/MASTER_PLAN.md](docs/plan/MASTER_PLAN.md) · Evidence: [docs/plan/RESEARCH_HIGGSFIELD.md](docs/plan/RESEARCH_HIGGSFIELD.md) · Build instructions: [docs/plan/work-orders/](docs/plan/work-orders/)
 
 ## Next action
-Start **WO-01** (real file I/O) — it unblocks everything. Then WO-02 and WO-03 in parallel. See the dependency graph in `docs/plan/work-orders/README.md`.
+Run **Wargame 09** → build **WO-03** (durable job queue) on branch `wo/03-job-queue` off the plan branch. See [wargames/09-wo03-job-queue.md](wargames/09-wo03-job-queue.md) — runs move-by-move without questions. (Or: owner merges PRs #3/#4 first.)
 
-## State of the code (verified 2026-07-05)
-- `npm run check` green: typecheck + validate + 11 smokes.
-- `npm run pipeline:real` → `status: passed` — 6 real classic-CV stage providers.
-- Gaps: artifacts are `asset://` manifests (no real files), no UI/auth/queue/billing, Python engine (in the omni3d skill's `engine/`) not yet merged/connected — exactly what the work orders fix.
+## State of the code (plan branch, verified 2026-07-06)
+- `npm run check` green: 12 smoke suites. `npm run pipeline:real` → `status: passed` — 6 real classic-CV stage providers.
+- **Landed on branches (draft PRs):** WO-01 real file I/O (#4, `IN-REVIEW`), wargame-07 `/live` silent-failure fix (#3).
+- Gaps the WOs still fill: no queue/worker (WO-03, next), no auth/billing/UI, Python engine not merged (WO-02).
 
 ## Key decisions
 - Compete with Higgsfield on **trust** (honest billing/unlimited — their 3.2/5 Trustpilot wound) and **3D** (they have none): see MASTER_PLAN "The one-line strategy".

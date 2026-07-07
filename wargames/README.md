@@ -9,10 +9,11 @@
 
 | # | File | Mission | Branch the executor uses | Status |
 |---|------|---------|--------------------------|--------|
-| 07 | [07-bugs.md](./07-bugs.md) | Find, prove, fix real pipeline defects without breaking green | `wargame/07-bugs` | written, not yet run |
-| 08 | [08-wo01-file-io.md](./08-wo01-file-io.md) | Build WO-01 (real file I/O — uploads + real `.glb` download) | `wo/01-real-file-io` | written, not yet run |
+| 07 | [07-bugs.md](./07-bugs.md) | Find, prove, fix real pipeline defects without breaking green | `wargame/07-bugs` | **RUN** → PR #3 (1 real defect fixed: silent `/live` replay failure) |
+| 08 | [08-wo01-file-io.md](./08-wo01-file-io.md) | Build WO-01 (real file I/O — uploads + real `.glb` download) | `wo/01-real-file-io` | **RUN** → PR #4 (green; glb validates clean) |
+| 09 | [09-wo03-job-queue.md](./09-wo03-job-queue.md) | Build WO-03 (durable queue + worker + refund ledger) | `wo/03-job-queue` | written, not yet run |
 
-Neither has been executed yet — no product code exists. Running one is a valid next action.
+07 and 08 have been executed (draft PRs #3, #4, both on the plan branch). 09 is the next to run.
 
 ## Carried intel — verified repo facts the wargames established (don't re-derive)
 
@@ -40,11 +41,18 @@ Neither has been executed yet — no product code exists. Running one is a valid
 4. `list()` orders by `createdAt` string only (`memory.ts:21-25`) — same-ms ties → nondeterministic order; minor.
 5. `genEitl` collapses `engine:"both"` → `"ue5"` (`generators.ts:258`) — cosmetic (both `export` blocks retained); likely NOT-A-BUG.
 
-**WO-01 build traps (wargame 08) — mandated fallbacks**
-- `@fastify/multipart` must be **v9** (Fastify 5); `@gltf-transform/core` is ESM — if it won't produce a valid GLB, fall back to a ~60-line hand-rolled GLB writer, validated the same way.
-- Serialize A3/C mesh as a **side effect** — if `smoke:retopo`/`smoke:e2e` go red you changed geometry output; revert to side-effect-only.
-- Path-traversal guard lives in the store: resolve then assert `startsWith(resolve(dataDir))`; the `smoke:assets` negative tests (`../`→404, oversize→413, bad type→400) are non-negotiable.
-- Done = downloaded `.glb` shows `glTF` magic bytes **and** passes `gltf-transform validate`.
+**WO-01 build outcomes (wargame 08 — RAN, all confirmed)**
+- `@fastify/multipart` is **v10** (wargame guessed v9) — imports clean under Fastify 5. `@gltf-transform/core` writes a validator-clean GLB from Float32 positions + Uint32 indices with **no min/max needed**; the hand-rolled fallback was NOT required.
+- Serialized A3/C mesh as a **side effect** — `smoke:retopo`/`smoke:e2e` stayed green (payloads unchanged). This pattern works; reuse it.
+- Traversal guard in the store (resolve + `startsWith`) — the `smoke:assets` negatives all pass.
+- **Windows curl gotcha:** `curl -F file=@/tmp/x` fails with error 26 (Win `curl.exe` can't read MSYS `/tmp` paths) → looks like HTTP 000 / a server crash but is client-side. Use a **repo-relative** file path for manual curl tests.
+
+**WO-03 build intel (wargame 09) — read before building the queue**
+- **[on-paper] The persist+publish loop lives in the `/advance` HTTP handler** (`app.ts:89-94`), NOT in `runRealPipeline` (which persists nothing). The worker must call a shared extracted helper, not `runRealPipeline`, or the queue and live stream diverge.
+- **[on-paper] `GET /jobs/:id/events` already exists as REST JSON** — don't repurpose it for SSE; add `/jobs/:id/stream`.
+- **[on-paper] `LiveEvent` is a strict union with DOT-separated types** — new queue events must be added to the union (use dots: `job.done`, not `job:done`) or `LiveEvent.parse` throws.
+- **[on-paper] The single-worker queue structurally kills the wargame-07 concurrency race** — keep one in-flight slot; don't add a worker pool (out of scope).
+- pg-boss needs the **direct** Postgres connection (`DIRECT_URL`, 5432), not the pooled string; lazy-import it (like `factory.ts` does for `pg`) so CI needs no DB.
 
 ## How to run a wargame (for the executor)
 
