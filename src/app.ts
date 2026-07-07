@@ -170,7 +170,9 @@ export async function buildApp(
     try {
       for (const ev of await store.getEvents(jobId, lastSent)) send(ev);
     } catch {
-      // best-effort replay; continue with the live stream
+      // Replay is best-effort, but the failure must be VISIBLE: without this signal a
+      // resuming client gets a silent gap in its event log. Continue with the live stream.
+      socket.send(JSON.stringify(errorEvent("event replay failed; stream may have a gap — refetch /jobs/:id/events")));
     }
     replaying = false;
     for (const ev of buffered) send(ev);

@@ -87,6 +87,34 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
   - pg-boss needs `DIRECT_URL` (5432, not pooled); lazy-import so CI needs no DB.
 - Next: run wargame 09 (build WO-03) on branch `wo/03-job-queue` off the plan branch.
 
+### [WARGAME-07-RUN] Bug hunt executed — LANDED — 2026-07-06
+- Agent/session: executor session (ran wargames/07-bugs.md move by move)
+- Branch/PR: wargame/07-bugs · draft PR (see below)
+- Verdicts (each decided by the probe named in the wargame):
+  - #1 store-wide seq → **NOT-A-BUG** (Move 4 arbiter: cross-job resume returns only job-A
+    events `s2,s3`; strict `>from` boundary holds — events bucketed per job before seq filter)
+  - #2 concurrent advance race → **RECON-NEEDED, not reproducible on MemoryJobStore**: 20/20
+    runs over a REAL listening server (paired concurrent fetches) = 6 stages, canonical order,
+    no dupes. Node drains each handler's microtask chain before the next request; race needs
+    real-I/O awaits → **flag carried to WO-03: prove/guard on the Supabase store** (its network
+    awaits DO interleave). `smoke:race` kept wired into check as a canary for the WO-03 rewrite.
+  - #3 /live replay→live seam → **clean** (10 events, 6 stage.completed, seqs unique+ordered;
+    resume from last seq delivers 0 stale)
+  - #4 list() same-ms ties → **NOT-A-BUG** (V8 stable sort ⇒ deterministic; cosmetic: ties are
+    insertion-ordered inside a desc list — note for WO-05 if job lists become user-facing)
+  - #5 engine:"both" collapse → **NOT-A-BUG** (label-only; export retains both ue5+unity blocks)
+  - Move-7 sweep → **1 REAL DEFECT FIXED**: `/live` replay failure was silently swallowed
+    (`src/app.ts` catch) → resuming client got a silent gap. Fix: emit protocol `error` event
+    ("event replay failed; stream may have a gap"). Regression smoke `smoke:live-replay`
+    proven by stash-red/restore-green ritual (FAIL without fix, PASS with). Other catches
+    (client.ts, pg-bus, supabase-bus) are commented-intentional — left alone.
+- Also: `@types/ws` added as devDependency (types-only, zero runtime) for the ws-client smokes.
+- Probe gotcha for future ws smokes: attach `message` listener BEFORE `open` — first frames
+  arrive immediately and are lost otherwise.
+- Verification: `npm run check` green (13 smokes incl. race + live-replay); `pipeline:real`
+  → status: passed, 6 stages, repairs 0 (behavior unchanged); ritual outputs pasted in PR.
+- Next: merge decision on the fix PR (owner), then WO-01 (wargame 08) or WO-03 carries the #2 flag.
+
 ### [WARGAME] Wargames 07 + 08 written; intel indexed — LANDED — 2026-07-06
 - Agent/session: planning session (Claude), after read-only recon of the full pipeline
 - Branch/PR: plan/higgsfield-competitor · PR #2 (draft)
