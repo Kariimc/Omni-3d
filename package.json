@@ -17,15 +17,18 @@
     "smoke:retarget": "tsx src/smoke-retarget.ts",
     "smoke:voxel": "tsx src/smoke-voxel.ts",
     "smoke:e2e": "tsx src/smoke-real-e2e.ts",
+    "smoke:assets": "tsx src/smoke-assets.ts",
     "pipeline:real": "tsx src/pipeline-real.ts",
     "live:client": "tsx src/live-client.ts",
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel && npm run smoke:e2e"
+    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel && npm run smoke:e2e && npm run smoke:assets"
   },
   "dependencies": {
+    "@fastify/multipart": "^10.0.0",
     "@fastify/websocket": "^11.0.1",
+    "@gltf-transform/core": "^4.4.1",
     "@supabase/supabase-js": "^2.45.4",
     "fastify": "^5.1.0",
     "jimp": "^1.6.1",
