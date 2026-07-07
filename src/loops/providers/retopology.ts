@@ -7,7 +7,7 @@ export interface Mesh {
   indices: Uint32Array;
 }
 
-const QUAD_TARGET: Record<PipelineJob["targets"]["polyBudget"], number> = {
+export const QUAD_TARGET: Record<PipelineJob["targets"]["polyBudget"], number> = {
   mobile_xr: 5000,
   hero: 32000,
   nanite: 120000,

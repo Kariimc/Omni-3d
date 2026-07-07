@@ -1,3 +1,4 @@
+import { LocalAssetStore } from "./assets/store";
 import { buildStageContext, runRealPipeline } from "./loops/real-providers";
 import { buildJobEnvelope, CreatePipelineRequest } from "./schemas";
 
@@ -15,9 +16,16 @@ async function main(): Promise<void> {
   const job = buildJobEnvelope(req);
 
   console.log(`\nOmni3D pipeline — ${real ? "REAL providers" : "synthetic generators"} (job ${job.jobId})\n`);
-  const { job: final, payloads } = await runRealPipeline(job, ctx);
+  const { job: final, payloads } = await runRealPipeline(job, ctx, new LocalAssetStore());
   for (const p of payloads) console.log("  •", (p as any).$omni3d);
-  console.log(`\nstatus: ${final.status} | EITL repairs: ${final.runner?.repairs} | stages: ${payloads.length}\n`);
+  console.log(`\nstatus: ${final.status} | EITL repairs: ${final.runner?.repairs} | stages: ${payloads.length}`);
+  if (final.artifacts.retopoMesh.includes("/") && real && final.status === "passed") {
+    const path = final.artifacts.retopoMesh.replace("asset://", "");
+    console.log(`artifact: ${final.artifacts.retopoMesh}`);
+    console.log(`download: curl -o out.glb localhost:8787/assets/${path}\n`);
+  } else {
+    console.log("");
+  }
 }
 
 main().catch((err: unknown) => {

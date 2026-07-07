@@ -21,7 +21,7 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 
 | WO | Status | Branch | PR |
 |----|--------|--------|----|
-| 01 real file I/O | not started | — | — |
+| 01 real file I/O | LANDED (→ plan) | wo/01-real-file-io | PR #4 |
 | 02 engine bridge | not started | — | — |
 | 03 job queue | not started | — | — |
 | 04 web workspace | not started | — | — |
@@ -114,6 +114,34 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 - Verification: `npm run check` green (13 smokes incl. race + live-replay); `pipeline:real`
   → status: passed, 6 stages, repairs 0 (behavior unchanged); ritual outputs pasted in PR.
 - Next: merge decision on the fix PR (owner), then WO-01 (wargame 08) or WO-03 carries the #2 flag.
+### [WO-01] Real file I/O built (wargame 08 executed) — IN-REVIEW — 2026-07-06
+- Agent/session: executor session (ran wargames/08-wo01-file-io.md move by move)
+- Branch/PR: wo/01-real-file-io · draft PR (see below), based on plan/higgsfield-competitor
+- Done (all verified, commands pasted in PR):
+  - `src/assets/store.ts`: `AssetStore` interface + `LocalAssetStore` (mints asset:// URIs,
+    traversal-safe via resolve+startsWith on the RESOLVED path). `src/assets/glb.ts`: mesh→
+    binary .glb via @gltf-transform/core.
+  - `src/app.ts`: `buildApp` gained optional `assets` param (3rd, defaulted — existing 2-arg
+    callers untouched); `POST /assets` (multipart, type allow-list, size cap→413) and
+    `GET /assets/*` (streamed, 404 traversal-safe).
+  - `runRealPipeline(job, ctx, assets?)`: on a passing REAL run, serializes the decimated mesh
+    to a real .glb as a SIDE EFFECT and points artifacts.retopoMesh at the stored file. Emitted
+    stage payloads unchanged (smoke:retopo + smoke:e2e stayed green → R4 satisfied).
+  - `src/smoke-assets.ts` wired into `npm run check` (10 assertions incl. traversal/oversize/
+    bad-type negatives). `data/` gitignored. Deps added: @fastify/multipart@10, @gltf-transform/core.
+- Verified: `npm run check` green (12 pass lines); `pipeline:real` → status passed, EITL 0,
+  6 stages (unchanged); manual HTTP round-trip 201/identical-bytes/400/404/alive; downloaded
+  glb magic `glTF` + `gltf-transform validate` → 0 errors 0 warnings.
+- Discovered (carry forward):
+  - **Windows curl gotcha:** `curl -F file=@/tmp/x` fails with error 26 (Win curl.exe can't read
+    MSYS /tmp paths) → looks like HTTP 000 / a server crash but is client-side. Use a repo-relative
+    file path for manual curl tests. Cost real debugging time — logged so the next agent skips it.
+  - @fastify/multipart is **v10** (not v9 as the wargame guessed) — imports clean under Fastify 5.
+  - @gltf-transform/core writes a validator-clean GLB from Float32 positions + Uint32 indices
+    with no min/max needed for `validate` to pass — the hand-rolled fallback was NOT required.
+  - The unconsumed-multipart-stream-hangs risk (wargame Move 3 ②) did NOT bite; watched for it, clean.
+- Next: owner merge decision on this PR. Then WO-02/WO-03 can start (WO-01's AssetStore contract
+  is now real). WO-03 still carries the concurrency-race canary (smoke:race) from wargame 07.
 
 ### [WARGAME] Wargames 07 + 08 written; intel indexed — LANDED — 2026-07-06
 - Agent/session: planning session (Claude), after read-only recon of the full pipeline
