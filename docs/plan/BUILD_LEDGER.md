@@ -21,9 +21,9 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 
 | WO | Status | Branch | PR |
 |----|--------|--------|----|
-| 01 real file I/O | LANDED (→ plan) | wo/01-real-file-io | PR #4 |
-| 02 engine bridge | not started | — | — |
-| 03 job queue | not started | — | — |
+| 01 real file I/O | LANDED (→ main) | wo/01-real-file-io | PR #4 (merged) |
+| 02 engine bridge | not started (no wargame yet) | — | — |
+| 03 job queue | not started — wargame 09 ready to run | — | — |
 | 04 web workspace | not started | — | — |
 | 05 auth + projects | not started | — | — |
 | 06 cost meter | not started | — | — |
@@ -178,3 +178,23 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
     documented so agents don't relitigate.
 - Next: unchanged — start WO-01; also start WO-15 as soon as WO-03 lands (deploy early so
   every later WO verifies against a real environment).
+
+### [SYNC] Owner merged #2/#3/#4/#5 to main; CLAUDE.md + skills landed; PROGRESS re-pointed at wargame 09 — LANDED — 2026-07-08
+- Agent/session: handoff session (Claude Sonnet 5), after the owner merged PR #5
+- Branch/PR: worked directly on `main` (docs/ledger sync only, no product code) — no new PR
+- Done: owner merged PR #2 (plan), PR #3 (wargame-07 `/live` fix), PR #4 (WO-01 real file I/O),
+  and PR #5 (CLAUDE.md operating manual + `/smoke`, `/wargame`, `/handoff` skills) — all now
+  on `main`, zero open PRs. Re-verified the baseline directly on `main`:
+  `npm install && npm run check` → GREEN, **13** smoke suites (12 + `smoke:assets` from WO-01).
+  Updated the WO status board (WO-01 → LANDED → main; WO-02/03 rows note wargame status) and
+  rewrote PROGRESS.md's "Next action" as a numbered, ranked move list so a fresh agent can
+  start executing wargame 09 immediately with no re-derivation.
+- Discovered:
+  - PROGRESS.md and this ledger's status board had drifted from reality after the merges
+    (still described PRs #3/#4 as open drafts, baseline as "12 smokes" on a "plan branch").
+    Docs describing merge/PR state need a sync pass right after every owner merge, not just
+    at WO boundaries — nothing else in the workflow currently triggers that check.
+  - No wargame exists yet for WO-02 (engine bridge) — wargame 09 (WO-03) is the only
+    ready-to-run plan; anyone picking WO-02 next must `/wargame` it first.
+- Next: run wargame 09 → build WO-03 (durable job queue) on `wo/03-job-queue` off `main`,
+  per the ranked steps now in PROGRESS.md "Next action". Nothing is blocked.
