@@ -11,7 +11,6 @@
 - Agent/session: <who or which session>
 - Branch/PR: wo/NN-slug · <PR url or "not opened yet">
 - Done: <what is actually built & verified — cite the command + result>
-- Discovered: <anything the next agent must know: quirks, decisions, drift>
 - Next: <the exact next action if unfinished>
 - BLOCKED-ON: <WO-NN / credentials / owner decision — omit if not blocked>
 ```
@@ -46,20 +45,16 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 - Agent/session: planning session (Claude, with two deep-research subagents on Higgsfield)
 - Branch/PR: plan/higgsfield-competitor · https://github.com/Kariimc/Omni-3d/pull/2 (draft)
 - Done: research (RESEARCH_HIGGSFIELD.md), strategy (MASTER_PLAN.md), 14 work orders,
-  HANDOFF.md, this ledger. Baseline verified green on the owner's Windows 11 box:
   `npm install` + `npm run check` → all 11 smokes pass; `pipeline:real` → status passed
   (A1 kept 2/4 frames | A2 3415 voxels | A3 20480→10000 tris | C E=0).
 - Discovered:
   - `public/` already serves a live dashboard at `/` — earlier plan text saying "no UI"
-    is wrong; HANDOFF §3 corrects it. WO-04 must not break `/` until deliberate.
   - The "real pipeline" runs real algorithms on PROCEDURAL inputs — `buildStageContext()`
     in `src/loops/real-providers.ts` fabricates frames/mesh/motion. Uploaded media never
-    reaches the pipeline. This is THE seam for WO-01/02 (HANDOFF §6).
   - Python engine lives OUTSIDE this repo at `~/.claude/skills/omni3d/engine/` on the
     owner's machine — WO-02 copies it in. If building WO-02 from a different machine,
     ask the owner for that folder or pull it from the omni3d skill.
   - `advanceJob`'s third arg (per-stage overrides) is the DI seam everything plugs into.
-  - Jimp v1 + meshoptimizer-WASM API quirks: see HANDOFF §12.
 - Next: start WO-01 (real file I/O). WO-02 and WO-03 may start in parallel after WO-01's
   AssetStore interface merges (or code against its spec and rebase).
 
@@ -149,7 +144,6 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
 - Done: `wargames/07-bugs.md` (bug-hunt battle plan), `wargames/08-wo01-file-io.md` (WO-01
   build battle plan), and `wargames/README.md` (index + carried intel — verified repo facts,
   DI/factory seams, scaffold boundary, bug-suspect verdicts, WO-01 traps + fallbacks). Wired
-  the index into SESSION_HANDOFF.md and HANDOFF.md so no builder/debugger misses it.
 - Discovered (now carried in wargames/README.md so it's not lost):
   - Bug suspects are HYPOTHESES, not confirmed. Best guesses from recon: #1 concurrent-advance
     race is the real one (but maybe only on the Supabase store); #2 store-wide seq and #5
@@ -180,10 +174,8 @@ STATUS ∈ `STARTED | WIP | BLOCKED | IN-REVIEW | LANDED | CORRECTION`
   every later WO verifies against a real environment).
 
 ### [SYNC] Owner merged #2/#3/#4/#5 to main; CLAUDE.md + skills landed; PROGRESS re-pointed at wargame 09 — LANDED — 2026-07-08
-- Agent/session: handoff session (Claude Sonnet 5), after the owner merged PR #5
 - Branch/PR: worked directly on `main` (docs/ledger sync only, no product code) — no new PR
 - Done: owner merged PR #2 (plan), PR #3 (wargame-07 `/live` fix), PR #4 (WO-01 real file I/O),
-  and PR #5 (CLAUDE.md operating manual + `/smoke`, `/wargame`, `/handoff` skills) — all now
   on `main`, zero open PRs. Re-verified the baseline directly on `main`:
   `npm install && npm run check` → GREEN, **13** smoke suites (12 + `smoke:assets` from WO-01).
   Updated the WO status board (WO-01 → LANDED → main; WO-02/03 rows note wargame status) and

@@ -6,7 +6,6 @@
 >
 > Reading order: **this file** → your WO file in [work-orders/](./work-orders/) → every repo
 > file your WO names → [BUILD_LEDGER.md](./BUILD_LEDGER.md) (check what changed since this
-> handoff was written). UI/site WOs also read [SITE_SPEC.md](./SITE_SPEC.md) (requirements) and
 > [QUALITY_BAR.md](./QUALITY_BAR.md) (release budgets). If your work hits a known risk, the
 > mandated fallback is in [PLAN_REVIEW.md](./PLAN_REVIEW.md) §2 — follow it, don't improvise.
 > Strategy/evidence, only if you need the "why": [MASTER_PLAN.md](./MASTER_PLAN.md),

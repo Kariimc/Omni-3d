@@ -13,7 +13,6 @@ Community complaint #5: Higgsfield caps at 1080p (720p on unlimited) and charges
 
 ## Spec
 1. **Engine upscalers**: extend `engine/` with `/upscale/image` (Real-ESRGAN x2/x4; CPU fallback works, just slow) and `/upscale/video` (frame-extract via ffmpeg → per-frame Real-ESRGAN → reassemble at source fps, preserve audio stream). Mock backend: plain bicubic resize so CI stays green and fast.
-2. **TS surface**: `POST /upscale {assetUri, factor}` as a queue job; contracts + cost rows (local = 0 credits; hosted-upscale row left as placeholder).
 3. **Native-res renders**: WO-08's server render must accept up to 3840×2160 directly — verify the headless canvas path at 4K and document memory limits.
 4. **Auto-finish option**: job payloads and scene exports (WO-11) gain `finish: { targetResolution }` — pipeline appends an upscale step when the source is below target. Estimate includes it as an explicit row (no hidden work — WO-06 principle).
 5. **Web**: resolution picker (720p/1080p/4K) on render/export screens; "included, 0 credits (local)" label.

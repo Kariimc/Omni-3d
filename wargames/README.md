@@ -37,7 +37,6 @@
 **Bug-hunt suspects (wargame 07) — status: hypotheses, not yet confirmed**
 1. Concurrent `POST /jobs/:id/advance` on one job — read-`cursor`/write-`cursor+1` across `await` with no lock in `MemoryJobStore` → suspected lost-update/duplicate-stage race. **Highest impact.** Caveat: may be theoretical on the single-thread in-memory store; likely bites the Supabase store (real network awaits). Settle per wargame 07 Move 3 / R1–R2.
 2. Store-wide `seq` counter (`memory.ts:11,38`) — recon reads it as **unusual but correct** (events bucketed per job before the seq filter); likely NOT-A-BUG, arbiter test in 07 Move 4.
-3. `/live` replay→live seam (`app.ts:140-177`) — dedupe by `seq > lastSent`; probe for a duplicate/drop at the handoff (07 Move 5).
 4. `list()` orders by `createdAt` string only (`memory.ts:21-25`) — same-ms ties → nondeterministic order; minor.
 5. `genEitl` collapses `engine:"both"` → `"ue5"` (`generators.ts:258`) — cosmetic (both `export` blocks retained); likely NOT-A-BUG.
 
