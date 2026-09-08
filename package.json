@@ -25,7 +25,8 @@
     "validate": "tsx src/validate.ts",
     "export:schema": "tsx src/export-json-schema.ts",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel && npm run smoke:e2e && npm run smoke:race && npm run smoke:live-replay && npm run smoke:assets"
+    "check": "npm run test:security && npm run typecheck && npm run validate && npm run smoke && npm run smoke:live && npm run smoke:bus && npm run smoke:sampler && npm run smoke:retopo && npm run smoke:mesh && npm run smoke:skin && npm run smoke:retarget && npm run smoke:voxel && npm run smoke:e2e && npm run smoke:race && npm run smoke:live-replay && npm run smoke:assets",
+    "test:security": "node scripts/security-regression.mjs"
   },
   "dependencies": {
     "@fastify/multipart": "^10.0.0",
